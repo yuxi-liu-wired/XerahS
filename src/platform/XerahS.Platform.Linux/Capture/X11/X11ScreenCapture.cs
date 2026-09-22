@@ -100,20 +100,48 @@ internal static class X11ScreenCapture
 
                 var stride = ximage.bytes_per_line;
                 var baseAddress = ximage.data;
+                IntPtr dstBase = bitmap.GetPixels();
+                int dstStride = bitmap.RowBytes;
+
+                // Build each row in a managed buffer and copy it into the bitmap in one call.
+                // SKBitmap.SetPixel per pixel costs a native call each: ~4 s at 2560x1600.
+                // Bgra8888 in little-endian memory is 0xAARRGGBB, the same layout as a
+                // 32 bpp LSBFirst ZPixmap with masks 0xFF0000/0xFF00/0xFF, so that common
+                // case is a straight row copy with the alpha byte forced to 0xFF.
+                bool isBgrx32 = bytesPerPixel == 4 &&
+                    ximage.byte_order == 0 &&
+                    ximage.red_mask == 0xFF0000 &&
+                    ximage.green_mask == 0xFF00 &&
+                    ximage.blue_mask == 0xFF;
+
+                var row = new int[width];
                 for (int y = 0; y < height; y++)
                 {
                     var rowStart = IntPtr.Add(baseAddress, y * stride);
-                    for (int x = 0; x < width; x++)
+                    if (isBgrx32)
                     {
-                        var pixelPtr = IntPtr.Add(rowStart, x * bytesPerPixel);
-                        uint pixelValue = ReadPixel(pixelPtr, bytesPerPixel);
-
-                        byte r = NormalizeChannel((pixelValue & (uint)ximage.red_mask) >> redShift, redBits);
-                        byte g = NormalizeChannel((pixelValue & (uint)ximage.green_mask) >> greenShift, greenBits);
-                        byte b = NormalizeChannel((pixelValue & (uint)ximage.blue_mask) >> blueShift, blueBits);
-
-                        bitmap.SetPixel(x, y, new SKColor(r, g, b));
+                        Marshal.Copy(rowStart, row, 0, width);
+                        for (int x = 0; x < width; x++)
+                        {
+                            row[x] |= unchecked((int)0xFF000000);
+                        }
                     }
+                    else
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            var pixelPtr = IntPtr.Add(rowStart, x * bytesPerPixel);
+                            uint pixelValue = ReadPixel(pixelPtr, bytesPerPixel);
+
+                            uint r = NormalizeChannel((pixelValue & (uint)ximage.red_mask) >> redShift, redBits);
+                            uint g = NormalizeChannel((pixelValue & (uint)ximage.green_mask) >> greenShift, greenBits);
+                            uint b = NormalizeChannel((pixelValue & (uint)ximage.blue_mask) >> blueShift, blueBits);
+
+                            row[x] = unchecked((int)(0xFF000000u | (r << 16) | (g << 8) | b));
+                        }
+                    }
+
+                    Marshal.Copy(row, 0, IntPtr.Add(dstBase, y * dstStride), width);
                 }
 
                 return bitmap;

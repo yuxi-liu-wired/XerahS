@@ -16,9 +16,9 @@ public class PulseAudioHelperTests
     [Test]
     public void RunPactlCapture_HappyPath_ExitsZeroAndReturnsStdout()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Echo a small payload to stdout and exit 0. Verifies the happy
@@ -39,9 +39,9 @@ public class PulseAudioHelperTests
     [Test]
     public void RunPactlCapture_StderrExceedsPipeBuffer_ToolDoesNotBlock()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // The OS pipe buffer on POSIX systems is typically 64KB. We write
@@ -75,9 +75,9 @@ public class PulseAudioHelperTests
     [Test]
     public void RunPactlCapture_TimeoutReturnsNullExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Sleep for 5s with a 1s timeout. The helper should kill the
@@ -105,9 +105,9 @@ public class PulseAudioHelperTests
     [Test]
     public void RunPactlCapture_NonZeroExitCode_PropagatesExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Exit with a non-zero code and a small stderr message. The helper

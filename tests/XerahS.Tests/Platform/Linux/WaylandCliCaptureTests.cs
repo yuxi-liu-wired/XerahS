@@ -47,9 +47,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void RunCliCapture_HappyPath_ExitsZeroAndReturnsStdout()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Mimic grim's stdout ("0 0 1920 1080" geometry from slurp) and exit 0.
@@ -69,9 +69,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void RunCliCapture_StderrExceedsPipeBuffer_ToolDoesNotBlock()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // The OS pipe buffer on POSIX systems is typically 64KB. We write
@@ -107,9 +107,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void RunCliCapture_TimeoutReturnsNullExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Sleep for 5s with a 1s timeout. The helper should kill the
@@ -141,9 +141,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void RunCliCapture_NonZeroExitCode_PropagatesExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Exit with a non-zero code (grim/grimblast return 1 when no
@@ -166,9 +166,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureActiveWindowRouting_Hyprland_GrimblastThenHyprshot()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Hyprland should be handled by the first block only: grimblast ->
@@ -191,9 +191,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureActiveWindowRouting_Sway_GrimblastThenSwayFocused()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Sway is wlroots but not Hyprland, so it bypasses the first block
@@ -213,9 +213,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureActiveWindowRouting_NullDesktop_GrimblastThenSwayFocused()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // When DESKTOP_SESSION is unset (null), we treat it as an unknown
@@ -236,9 +236,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureActiveWindowRouting_NonWlroots_ReturnsEmpty()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // KDE/GNOME/XFCE etc. should not be routed to any active-window
@@ -256,9 +256,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureWithGrimSlurpParsing_ValidOutput_ReturnsParsedGeometry()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // slurp returns "x y w h" geometry on success. Verify the parsing
@@ -272,9 +272,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureWithGrimSlurpParsing_NullOutput_ReturnsNull_NoThrow()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Defensive regression test: if RunCliCapture ever returned null output
@@ -290,9 +290,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureWithGrimSlurpParsing_EmptyOutput_ReturnsNull()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // slurp exits 0 but produces no usable geometry (user cancelled / blank).
@@ -306,9 +306,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureWithGrimSlurpParsing_WhitespaceOnlyOutput_ReturnsNull()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // slurp wrote trailing whitespace / blank lines before exiting 0.
@@ -322,9 +322,9 @@ public class WaylandCliCaptureTests
     [Test]
     public void CaptureWithGrimSlurpParsing_NonZeroExit_ReturnsNull()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // slurp returns non-zero when the user cancels region selection.

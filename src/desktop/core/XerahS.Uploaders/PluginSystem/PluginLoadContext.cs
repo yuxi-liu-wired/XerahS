@@ -202,19 +202,6 @@ public class PluginLoadContext : AssemblyLoadContext
             yield break;
         }
 
-        if (OperatingSystem.IsWindows())
-        {
-            yield return $"{unmanagedDllName}.dll";
-            yield break;
-        }
-
-        if (OperatingSystem.IsMacOS())
-        {
-            yield return $"{unmanagedDllName}.dylib";
-            yield return $"lib{unmanagedDllName}.dylib";
-            yield break;
-        }
-
         yield return $"{unmanagedDllName}.so";
         yield return $"lib{unmanagedDllName}.so";
     }

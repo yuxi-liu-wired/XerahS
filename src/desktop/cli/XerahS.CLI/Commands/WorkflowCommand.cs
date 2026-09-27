@@ -42,12 +42,10 @@ namespace XerahS.CLI.Commands
             var durationOption = new Option<int>("--duration");
             durationOption.Description = "Duration in seconds to record (only for recording tasks)";
 
-            var dumpFrameOption = new Option<bool>("--dump-frame") { Description = "Dump the first captured frame to disk for debugging" };
             var exitOnCompleteOption = new Option<bool>("--exit-on-complete") { Description = "Exit the CLI process immediately after workflow completion" };
             var regionOption = new Option<string?>("--region") { Description = "Region override in format 'x,y,width,height' (e.g. '0,0,500,500')" };
 
             runCommand.Add(durationOption);
-            runCommand.Add(dumpFrameOption);
             runCommand.Add(exitOnCompleteOption);
             runCommand.Add(regionOption);
             runCommand.Add(workflowIdArg);
@@ -62,11 +60,10 @@ namespace XerahS.CLI.Commands
                     return;
                 }
                 var duration = parseResult.GetValue(durationOption);
-                var dumpFrame = parseResult.GetValue(dumpFrameOption);
                 var exitOnComplete = parseResult.GetValue(exitOnCompleteOption);
                 var region = parseResult.GetValue(regionOption);
 
-                Environment.ExitCode = RunWorkflowAsync(taskManager, recordingCoordinator, workflowId, duration, dumpFrame, exitOnComplete, region).GetAwaiter().GetResult();
+                Environment.ExitCode = RunWorkflowAsync(taskManager, recordingCoordinator, workflowId, duration, exitOnComplete, region).GetAwaiter().GetResult();
             });
 
             return runCommand;
@@ -90,7 +87,7 @@ namespace XerahS.CLI.Commands
             return CaptureCommand.TryParseRegion(region, out rect, out error);
         }
 
-        private static async Task<int> RunWorkflowAsync(IDesktopTaskManager taskManager, IScreenRecordingCoordinator recordingCoordinator, string workflowId, int duration, bool dumpFrame, bool exitOnComplete, string? region)
+        private static async Task<int> RunWorkflowAsync(IDesktopTaskManager taskManager, IScreenRecordingCoordinator recordingCoordinator, string workflowId, int duration, bool exitOnComplete, string? region)
         {
             try
             {
@@ -117,11 +114,8 @@ namespace XerahS.CLI.Commands
                 }
 
                 var runStart = DateTime.Now;
-                Console.WriteLine($"CLI flags: workflowId={workflowId}, duration={duration}s, dumpFrame={dumpFrame}, exitOnComplete={exitOnComplete}, region={region ?? "null"}, started={runStart:O}");
-                XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "CLI", $"Workflow run flags: workflowId={workflowId}, duration={duration}s, dumpFrame={dumpFrame}, exitOnComplete={exitOnComplete}, region={region ?? "null"}, started={runStart:O}");
-
-                // [2026-01-10T14:24:00+08:00] Enable first-frame dump when requested to diagnose orientation; disable by default.
-                XerahS.RegionCapture.ScreenRecording.ScreenRecorderService.DebugDumpFirstFrame = dumpFrame;
+                Console.WriteLine($"CLI flags: workflowId={workflowId}, duration={duration}s, exitOnComplete={exitOnComplete}, region={region ?? "null"}, started={runStart:O}");
+                XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "CLI", $"Workflow run flags: workflowId={workflowId}, duration={duration}s, exitOnComplete={exitOnComplete}, region={region ?? "null"}, started={runStart:O}");
 
                 Console.WriteLine($"Executing workflow: {workflow.Name} ({workflowId})");
 

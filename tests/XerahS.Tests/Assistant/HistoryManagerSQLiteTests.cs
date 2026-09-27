@@ -186,14 +186,7 @@ public sealed class HistoryManagerSQLiteTests
 
                 bool exists = manager.ContainsFilePath(differentCasePath);
 
-                if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
-                {
-                    Assert.That(exists, Is.True);
-                }
-                else
-                {
-                    Assert.That(exists, Is.False);
-                }
+                Assert.That(exists, Is.False);
             }
         }
         finally

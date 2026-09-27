@@ -56,9 +56,7 @@ public static class SendToSelectionClassifier
 
     private static string[] DistinctPaths(IEnumerable<string> paths)
     {
-        StringComparer comparer = OperatingSystem.IsWindows()
-            ? StringComparer.OrdinalIgnoreCase
-            : StringComparer.Ordinal;
+        StringComparer comparer = StringComparer.Ordinal;
 
         List<string> orderedPaths = [];
         HashSet<string> seen = new(comparer);

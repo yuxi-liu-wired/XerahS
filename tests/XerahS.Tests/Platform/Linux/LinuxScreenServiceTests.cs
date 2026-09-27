@@ -9,9 +9,9 @@ public class LinuxScreenServiceTests
     [Test]
     public void RunXrandrCapture_HappyPath_ExitsZeroAndReturnsStdout()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Echo a small payload to stdout and exit 0. Verifies the happy
@@ -32,9 +32,9 @@ public class LinuxScreenServiceTests
     [Test]
     public void RunXrandrCapture_StderrExceedsPipeBuffer_ToolDoesNotBlock()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // The OS pipe buffer on POSIX systems is typically 64KB. We write
@@ -68,9 +68,9 @@ public class LinuxScreenServiceTests
     [Test]
     public void RunXrandrCapture_TimeoutReturnsNullExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Sleep for 5s with a 1s timeout. The helper should kill the
@@ -95,9 +95,9 @@ public class LinuxScreenServiceTests
     [Test]
     public void RunXrandrCapture_NonZeroExit_ReturnsExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Echo to stderr and exit 7. Verifies the helper surfaces the

@@ -54,7 +54,7 @@ public class SettingsBaseBackupDiagnosticsTests
             {
                 // chmod 0000 child files inside month folders can stop the recursive
                 // delete from succeeding; restore perms so TearDown can clean up.
-                if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                if (OperatingSystem.IsLinux())
                 {
                     foreach (string innerFile in Directory.EnumerateFiles(_baseDir, "*", SearchOption.AllDirectories))
                     {
@@ -78,7 +78,6 @@ public class SettingsBaseBackupDiagnosticsTests
     }
 
     [SupportedOSPlatform("linux")]
-    [SupportedOSPlatform("macos")]
     private static void TryRestoreUnixFileMode(string path)
     {
         File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.OtherRead | UnixFileMode.OtherWrite);
@@ -141,18 +140,11 @@ public class SettingsBaseBackupDiagnosticsTests
 
     [Test]
     [SupportedOSPlatform("linux")]
-    [SupportedOSPlatform("macos")]
     public void PruneOldBackups_PerFolderDeleteFailure_FiresSettingsBackupFailed_PruneFolderPhase()
     {
-        // BCL behavior probe (verified on macOS): Directory.Delete(monthDir, recursive: true)
-        // throws UnauthorizedAccessException when the month folder is chmod 0555 (read+execute
-        // but no write) because the OS denies the unlink of the child file. The catch in
-        // PruneOldBackups surfaces the exception as phase="pruneFolder".
-        if (OperatingSystem.IsWindows())
-        {
-            Assert.Ignore("chmod 0555 month-folder test is Unix-only; the Windows ACL path is exercised by the build itself.");
-        }
-
+        // Directory.Delete(monthDir, recursive: true) throws UnauthorizedAccessException when the
+        // month folder is chmod 0555 (read+execute but no write) because the OS denies the unlink
+        // of the child file. The catch in PruneOldBackups surfaces the exception as phase="pruneFolder".
         string backupFolder = Path.Combine(_baseDir, "backups");
         Directory.CreateDirectory(backupFolder);
 

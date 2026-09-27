@@ -78,31 +78,6 @@ namespace XerahS.Common
 
         private static string GetDocumentsFolder()
         {
-            // On macOS, launchd/agent hosts can override HOME to an agent profile
-            // directory (for example ~/.hermes/profiles/<agent>/home). The CLR then
-            // resolves SpecialFolder.MyDocuments inside that profile, causing CLI
-            // plugin discovery to look in the wrong XerahS/Plugins folder. Resolve
-            // the real login account home through libc before falling back to the
-            // environment-sensitive .NET special folders.
-            if (OperatingSystem.IsMacOS())
-            {
-                string? nativeHome = GetNativeUserHomeDirectory();
-                if (!string.IsNullOrWhiteSpace(nativeHome))
-                {
-                    string nativeDocuments = Path.Combine(nativeHome, "Documents");
-                    if (Directory.Exists(nativeDocuments))
-                    {
-                        return nativeDocuments;
-                    }
-                }
-
-                string userNameDocuments = Path.Combine("/Users", Environment.UserName, "Documents");
-                if (Directory.Exists(userNameDocuments))
-                {
-                    return userNameDocuments;
-                }
-            }
-
             string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (!string.IsNullOrWhiteSpace(documents) && Path.IsPathRooted(documents))
             {
@@ -118,47 +93,6 @@ namespace XerahS.Common
             }
 
             return string.IsNullOrWhiteSpace(documents) ? Environment.CurrentDirectory : documents;
-        }
-
-        private static string? GetNativeUserHomeDirectory()
-        {
-            try
-            {
-                IntPtr passwdPointer = getpwuid(getuid());
-                if (passwdPointer == IntPtr.Zero)
-                {
-                    return null;
-                }
-
-                Passwd passwd = Marshal.PtrToStructure<Passwd>(passwdPointer);
-                return Marshal.PtrToStringUTF8(passwd.HomeDirectory);
-            }
-            catch (Exception ex) when (ex is EntryPointNotFoundException || ex is DllNotFoundException || ex is MarshalDirectiveException)
-            {
-                DebugHelper.WriteLine($"Unable to resolve native user home directory: {ex.Message}");
-                return null;
-            }
-        }
-
-        [DllImport("libc")]
-        private static extern uint getuid();
-
-        [DllImport("libc")]
-        private static extern IntPtr getpwuid(uint uid);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Passwd
-        {
-            public IntPtr Name;
-            public IntPtr Password;
-            public uint Uid;
-            public uint Gid;
-            public long Change;
-            public IntPtr Class;
-            public IntPtr Gecos;
-            public IntPtr HomeDirectory;
-            public IntPtr Shell;
-            public long Expire;
         }
 
         public static string ScreenshotsFolder => UseLinuxXdgLayout
@@ -306,12 +240,12 @@ namespace XerahS.Common
 
         public static string GetFFmpegPath()
         {
-            return GetToolPath("FFmpeg", OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+            return GetToolPath("FFmpeg", "ffmpeg");
         }
 
         public static string GetFFprobePath()
         {
-            return GetToolPath("FFprobe", OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe");
+            return GetToolPath("FFprobe", "ffprobe");
         }
 
         private static string GetToolPath(string toolName, string executableName)
@@ -325,21 +259,6 @@ namespace XerahS.Common
                 return toolsExecutablePath;
             }
 
-            // Check without extension on macOS/Linux if strict naming is used
-            if (!OperatingSystem.IsWindows())
-            {
-                string toolsExecutableNoExt = Path.Combine(ToolsArchitectureFolder, Path.GetFileNameWithoutExtension(executableName));
-                if (toolsExecutablePath != toolsExecutableNoExt)
-                {
-                    DebugHelper.WriteLine($"[{toolName}] Checking architecture tools path: {toolsExecutableNoExt}");
-                    if (File.Exists(toolsExecutableNoExt))
-                    {
-                        DebugHelper.WriteLine($"[{toolName}] Found {toolName} at: {toolsExecutableNoExt}");
-                        return toolsExecutableNoExt;
-                    }
-                }
-            }
-
             // 1b. Check legacy Personal Tools Folder
             string legacyToolsExecutablePath = Path.Combine(ToolsFolder, executableName);
             DebugHelper.WriteLine($"[{toolName}] Checking legacy tools path: {legacyToolsExecutablePath}");
@@ -349,31 +268,14 @@ namespace XerahS.Common
                 return legacyToolsExecutablePath;
             }
 
-            if (!OperatingSystem.IsWindows())
-            {
-                string legacyToolsExecutableNoExt = Path.Combine(ToolsFolder, Path.GetFileNameWithoutExtension(executableName));
-                if (legacyToolsExecutablePath != legacyToolsExecutableNoExt)
-                {
-                    DebugHelper.WriteLine($"[{toolName}] Checking legacy tools path: {legacyToolsExecutableNoExt}");
-                    if (File.Exists(legacyToolsExecutableNoExt))
-                    {
-                        DebugHelper.WriteLine($"[{toolName}] Found {toolName} at: {legacyToolsExecutableNoExt}");
-                        return legacyToolsExecutableNoExt;
-                    }
-                }
-            }
-
             // 2. Check Common System Locations
             string appToolsDir = GetAppToolsDirectory();
             string[] commonPaths = new[]
             {
                 Path.Combine(appToolsDir, executableName),
                 Path.Combine(AppContext.BaseDirectory, executableName),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "FFmpeg", "bin", executableName),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "FFmpeg", "bin", executableName),
-                $"/opt/homebrew/bin/{Path.GetFileNameWithoutExtension(executableName)}",
-                $"/usr/local/bin/{Path.GetFileNameWithoutExtension(executableName)}",
-                $"/usr/bin/{Path.GetFileNameWithoutExtension(executableName)}"
+                $"/usr/local/bin/{executableName}",
+                $"/usr/bin/{executableName}"
             };
 
             foreach (var path in commonPaths)
@@ -603,27 +505,7 @@ namespace XerahS.Common
 
         private static string GetArchitectureFolderName()
         {
-            if (OperatingSystem.IsWindows())
-            {
-                return RuntimeInformation.OSArchitecture switch
-                {
-                    Architecture.Arm64 => "win-arm64",
-                    Architecture.X64 => "win-x64",
-                    _ => "win-x86"
-                };
-            }
-
-            if (OperatingSystem.IsMacOS())
-            {
-                return "macos64";
-            }
-
-            if (OperatingSystem.IsLinux())
-            {
-                return "linux64";
-            }
-
-            return "win-x64";
+            return "linux64";
         }
     }
 }

@@ -41,9 +41,9 @@ public class LinuxInputServiceTests
     [Test]
     public void RunXdotoolCapture_HappyPath_ExitsZeroAndReturnsStdout()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Mimic xdotool's getmouselocation --shell output and exit 0.
@@ -67,9 +67,9 @@ public class LinuxInputServiceTests
     [Test]
     public void RunXdotoolCapture_StderrExceedsPipeBuffer_ToolDoesNotBlock()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // The OS pipe buffer on POSIX systems is typically 64KB. We write
@@ -103,9 +103,9 @@ public class LinuxInputServiceTests
     [Test]
     public void RunXdotoolCapture_TimeoutReturnsNullExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Sleep for 5s with a 1s timeout. The helper should kill the
@@ -133,9 +133,9 @@ public class LinuxInputServiceTests
     [Test]
     public void RunXdotoolCapture_NonZeroExitCode_PropagatesExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Exit with a non-zero code (xdotool returns 1 on display unavailable)

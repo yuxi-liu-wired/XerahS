@@ -153,22 +153,7 @@ namespace XerahS.Bootstrap
             dh.WriteLine($"Operating system: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})");
             dh.WriteLine($".NET version: {Environment.Version}");
 
-            bool isElevated = false;
-            if (OperatingSystem.IsWindows())
-            {
-                try
-                {
-                    using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                    isElevated = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.WriteLine($"Failed to check elevation status: {ex.Message}");
-                    // isElevated remains false
-                }
-            }
-            dh.WriteLine($"Running as elevated process: {isElevated}");
+            dh.WriteLine($"Running as elevated process: {Environment.IsPrivilegedProcess}");
             dh.WriteLine($"Flags: Dev");
 
             dh.AsyncWrite = true; // Switch back to async

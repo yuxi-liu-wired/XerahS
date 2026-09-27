@@ -129,9 +129,7 @@ public static class SendToPolicyResolver
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        StringComparer comparer = OperatingSystem.IsWindows()
-            ? StringComparer.OrdinalIgnoreCase
-            : StringComparer.Ordinal;
+        StringComparer comparer = StringComparer.Ordinal;
 
         HashSet<string> seen = new(comparer);
         List<string> files = [];

@@ -30,32 +30,14 @@ internal readonly record struct OverlayWindowLayout(PixelPoint Position, double 
 
 internal static class OverlayWindowLayoutCalculator
 {
-    public static OverlayWindowLayout Calculate(
-        MonitorInfo monitor,
-        bool isWindows,
-        bool isLinux,
-        bool isAvaloniaWayland)
+    /// <summary>
+    /// X11 places windows by physical origin; native Wayland uses logical (overlay) coordinates throughout.
+    /// </summary>
+    public static OverlayWindowLayout Calculate(MonitorInfo monitor, bool isAvaloniaWayland)
     {
-        if (isWindows)
-        {
-            return new OverlayWindowLayout(
-                Position: monitor.PhysicalBounds.TopLeft,
-                Width: monitor.PhysicalToLogical(monitor.PhysicalBounds.Width),
-                Height: monitor.PhysicalToLogical(monitor.PhysicalBounds.Height));
-        }
-
-        if (!isLinux)
-        {
-            return new OverlayWindowLayout(
-                Position: monitor.PhysicalBounds.TopLeft,
-                Width: monitor.PhysicalToLogical(monitor.PhysicalBounds.Width),
-                Height: monitor.PhysicalToLogical(monitor.PhysicalBounds.Height));
-        }
-
-        bool usePhysicalPosition = isLinux && !isAvaloniaWayland;
-        var position = usePhysicalPosition
-            ? monitor.PhysicalBounds.TopLeft
-            : monitor.OverlayBounds.TopLeft;
+        var position = isAvaloniaWayland
+            ? monitor.OverlayBounds.TopLeft
+            : monitor.PhysicalBounds.TopLeft;
 
         return new OverlayWindowLayout(
             Position: position,

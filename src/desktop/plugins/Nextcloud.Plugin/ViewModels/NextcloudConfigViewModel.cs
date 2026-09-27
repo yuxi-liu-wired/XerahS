@@ -625,14 +625,7 @@ public partial class NextcloudConfigViewModel : ObservableObject, IUploaderConfi
 
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            else
-            {
-                URLHelpers.OpenURL(url);
-            }
+            URLHelpers.OpenURL(url);
         }
         catch
         {

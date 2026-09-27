@@ -612,11 +612,7 @@ public class PluginLoaderTests
         File.Copy(typeof(PluginLoader).Assembly.Location, pluginPath);
 
         string libraryName = "nativehelper";
-        string libraryFileName = OperatingSystem.IsWindows()
-            ? $"{libraryName}.dll"
-            : OperatingSystem.IsMacOS()
-                ? $"lib{libraryName}.dylib"
-                : $"lib{libraryName}.so";
+        string libraryFileName = $"lib{libraryName}.so";
         string libraryPath = Path.Combine(pluginDirectory, libraryFileName);
         File.WriteAllBytes(libraryPath, Array.Empty<byte>());
 

@@ -154,21 +154,18 @@ public partial class OverlayWindow : Window
         InitializeThemeScope();
         DataContext = _viewModel;
 
-        bool isWindows = OperatingSystem.IsWindows();
-        bool isLinux = OperatingSystem.IsLinux();
         bool isAvaloniaWayland = MonitorEnumerationService.IsAvaloniaWaylandBackend();
-        var windowLayout = OverlayWindowLayoutCalculator.Calculate(monitor, isWindows, isLinux, isAvaloniaWayland);
+        var windowLayout = OverlayWindowLayoutCalculator.Calculate(monitor, isAvaloniaWayland);
 
         // Window origin and size do not share one coordinate space on every backend:
-        // Windows, X11, and macOS use physical origin with logical size; native Wayland uses logical coordinates throughout.
-        // Keep the calculated target layout so macOS can reapply it after the native NSWindow is created.
+        // X11 uses physical origin with logical size; native Wayland uses logical coordinates throughout.
         _targetPosition = new AvPixelPoint((int)windowLayout.Position.X, (int)windowLayout.Position.Y);
         _targetWidth = windowLayout.Width;
         _targetHeight = windowLayout.Height;
         _hasTargetWindowLayout = true;
         ApplyTargetWindowLayout("constructor");
 
-        DebugHelper.WriteLine($"[OverlayWindow] {monitor.DeviceName}: isWindows={isWindows} isAvaloniaWayland={isAvaloniaWayland} Position=({(int)windowLayout.Position.X},{(int)windowLayout.Position.Y}) Width={windowLayout.Width:F1} Height={windowLayout.Height:F1} PhysicalBounds=({monitor.PhysicalBounds.X:F1},{monitor.PhysicalBounds.Y:F1},{monitor.PhysicalBounds.Width:F1},{monitor.PhysicalBounds.Height:F1}) OverlayBounds=({monitor.OverlayBounds.X:F1},{monitor.OverlayBounds.Y:F1},{monitor.OverlayBounds.Width:F1},{monitor.OverlayBounds.Height:F1})");
+        DebugHelper.WriteLine($"[OverlayWindow] {monitor.DeviceName}: isAvaloniaWayland={isAvaloniaWayland} Position=({(int)windowLayout.Position.X},{(int)windowLayout.Position.Y}) Width={windowLayout.Width:F1} Height={windowLayout.Height:F1} PhysicalBounds=({monitor.PhysicalBounds.X:F1},{monitor.PhysicalBounds.Y:F1},{monitor.PhysicalBounds.Width:F1},{monitor.PhysicalBounds.Height:F1}) OverlayBounds=({monitor.OverlayBounds.X:F1},{monitor.OverlayBounds.Y:F1},{monitor.OverlayBounds.Width:F1},{monitor.OverlayBounds.Height:F1})");
 
         // Create and add the capture control
         _captureControl = new RegionCaptureControl(_monitor, options, initialCursor);
@@ -216,24 +213,6 @@ public partial class OverlayWindow : Window
     {
         base.OnOpened(e);
 
-        if (OperatingSystem.IsMacOS())
-        {
-            // Regression guard: Avalonia/macOS can clamp a borderless overlay to Screen.WorkingArea after Show(),
-            // even when the constructor requested full Screen.Bounds. Reapply the target bounds, then sync
-            // coordinate mapping to the actual NSWindow viewport if macOS still refuses the requested origin.
-            ApplyTargetWindowLayout("OnOpened");
-            SyncCaptureControlViewportToActualWindow("OnOpened");
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (_windowClosed)
-                    return;
-
-                ApplyTargetWindowLayout("OnOpened.Post");
-                SyncCaptureControlViewportToActualWindow("OnOpened.Post");
-                LogActualWindowGeometry("OnOpened.Post");
-            }, DispatcherPriority.Send);
-        }
-
         // Focus the capture control so it receives keyboard and pointer events
         this.Focus();
         _captureControl.Focus();
@@ -253,26 +232,6 @@ public partial class OverlayWindow : Window
         Height = _targetHeight;
 
         DebugHelper.WriteLine($"[OverlayWindow.{source}] {_monitor.DeviceName}: Applied target Position={Position} Width={Width:F1} Height={Height:F1}");
-    }
-
-    private void SyncCaptureControlViewportToActualWindow(string source)
-    {
-        try
-        {
-            var topLeftPhysical = this.PointToScreen(new Avalonia.Point(0, 0));
-            var bottomRightPhysical = this.PointToScreen(new Avalonia.Point(Width, Height));
-            var viewport = new PixelRect(
-                topLeftPhysical.X,
-                topLeftPhysical.Y,
-                Math.Max(1, bottomRightPhysical.X - topLeftPhysical.X),
-                Math.Max(1, bottomRightPhysical.Y - topLeftPhysical.Y));
-
-            _captureControl.SetPhysicalViewport(viewport, source);
-        }
-        catch (Exception ex)
-        {
-            DebugHelper.WriteLine($"[OverlayWindow.{source}] {_monitor.DeviceName}: Viewport sync failed: {ex.Message}");
-        }
     }
 
     private void LogActualWindowGeometry(string source)

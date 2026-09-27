@@ -53,9 +53,9 @@ public class ApplicationConfig : SettingsBase<ApplicationConfig>
 #pragma warning disable CA1416 // Validate platform compatibility
         this.ApplyDefaultPropertyValues();
 #pragma warning restore CA1416 // Validate platform compatibility
-        // On Linux (and macOS), system panels are typically dark; default to white tray icon
+        // On Linux, system panels are typically dark; default to white tray icon
         // so XerahS matches built-in indicators (wifi, volume, battery) in the system tray.
-        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+        if (OperatingSystem.IsLinux())
         {
             UseWhiteShareXIcon = true;
         }
@@ -65,12 +65,6 @@ public class ApplicationConfig : SettingsBase<ApplicationConfig>
             bool isWayland = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")) ||
                              string.Equals(Environment.GetEnvironmentVariable("XDG_SESSION_TYPE"), "wayland", StringComparison.OrdinalIgnoreCase);
             PersistClipboardAfterExit ??= isWayland;
-        }
-
-        if (OperatingSystem.IsMacOS())
-        {
-            AssistantHotkey = new HotkeyInfo(Key.Space, KeyModifiers.Meta | KeyModifiers.Shift);
-            CaptureCommandPaletteHotkey = new HotkeyInfo(Key.Space, KeyModifiers.Meta | KeyModifiers.Alt);
         }
     }
 
@@ -223,16 +217,6 @@ public class ApplicationConfig : SettingsBase<ApplicationConfig>
     // TODO: Add ImageHistorySettings when HistoryLib is ported
 
     #endregion Settings - History
-
-    #region Settings - Print
-
-    public bool DontShowPrintSettingsDialog = false;
-
-#pragma warning disable CA1416 // Validate platform compatibility
-    public PrintSettings PrintSettings = new PrintSettings();
-#pragma warning restore CA1416 // Validate platform compatibility
-
-    #endregion Settings - Print
 
     #region Settings - Advanced
 

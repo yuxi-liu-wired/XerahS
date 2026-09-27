@@ -93,40 +93,12 @@ namespace XerahS.Common
 
         public static FFmpegArchitecture ResolveArchitecture()
         {
-            if (OperatingSystem.IsWindows())
-            {
-                return RuntimeInformation.OSArchitecture switch
-                {
-                    System.Runtime.InteropServices.Architecture.Arm64 => FFmpegArchitecture.winArm64,
-                    System.Runtime.InteropServices.Architecture.X64 => FFmpegArchitecture.win64,
-                    _ => FFmpegArchitecture.win32
-                };
-            }
-
-            if (OperatingSystem.IsMacOS())
-            {
-                return FFmpegArchitecture.macos64;
-            }
-
-            if (OperatingSystem.IsLinux())
-            {
-                return FFmpegArchitecture.linux64;
-            }
-
-            return FFmpegArchitecture.win64;
+            return FFmpegArchitecture.linux64;
         }
 
         public string GetExpectedAssetSuffix()
         {
-            return Architecture switch
-            {
-                FFmpegArchitecture.win64 => "win-x64.zip",
-                FFmpegArchitecture.win32 => "win-x86.zip",
-                FFmpegArchitecture.winArm64 => "win-arm64.zip",
-                FFmpegArchitecture.macos64 => "macos64.zip",
-                FFmpegArchitecture.linux64 => "linux64.zip",
-                _ => "win-x64.zip"
-            };
+            return "linux64.zip";
         }
     }
 }

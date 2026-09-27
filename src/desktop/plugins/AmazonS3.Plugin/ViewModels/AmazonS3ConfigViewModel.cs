@@ -752,14 +752,7 @@ public partial class AmazonS3ConfigViewModel : ObservableObject, IUploaderConfig
 
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            else
-            {
-                URLHelpers.OpenURL(url);
-            }
+            URLHelpers.OpenURL(url);
         }
         catch
         {

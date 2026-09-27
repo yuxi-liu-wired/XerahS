@@ -271,7 +271,7 @@ public class VideoEditorExportAutomationTests
         {
         }
 
-        string fileName = OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+        string fileName = "ffmpeg";
         string? path = Environment.GetEnvironmentVariable("PATH");
         if (string.IsNullOrWhiteSpace(path))
         {

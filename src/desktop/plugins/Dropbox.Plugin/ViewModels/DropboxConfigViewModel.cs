@@ -562,13 +562,6 @@ public partial class DropboxConfigViewModel : ObservableObject, IUploaderConfigV
             return;
         }
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-        }
-        else
-        {
-            URLHelpers.OpenURL(url);
-        }
+        URLHelpers.OpenURL(url);
     }
 }

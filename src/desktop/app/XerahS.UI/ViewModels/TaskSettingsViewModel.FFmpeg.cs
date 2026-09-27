@@ -282,9 +282,7 @@ namespace XerahS.UI.ViewModels
             }
 
             string fullPath = Path.GetFullPath(path);
-            StringComparison comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-            return fullPath.StartsWith(toolsFolder, comparison);
+            return fullPath.StartsWith(toolsFolder, StringComparison.Ordinal);
         }
 
         private void RefreshOpenFFmpegOptionsWindows()

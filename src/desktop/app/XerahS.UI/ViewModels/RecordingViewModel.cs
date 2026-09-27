@@ -146,89 +146,17 @@ public partial class RecordingViewModel : ViewModelBase, IDisposable
     /// Encoder information for display
     /// Stage 3: Hardware encoder detection
     /// </summary>
-    public string EncoderInfo
-    {
-        get
-        {
-            // Simple platform check - detailed detection happens at runtime
-            if (OperatingSystem.IsWindows() && Environment.OSVersion.Version.Build >= 17134)
-            {
-                return IsFfmpegAvailableForAdvancedCodecs()
-                    ? "Windows uses native capture with Media Foundation for H.264. HEVC, VP9, and AV1 automatically switch to the FFmpeg backend in this build."
-                    : "Windows uses native capture with Media Foundation for H.264. Install FFmpeg to enable HEVC, VP9, and AV1 recording.";
-            }
-            else if (OperatingSystem.IsWindows())
-            {
-                return "Using FFmpeg fallback for recording (requires Windows 10 1803+ for native recording).";
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                return IsFfmpegAvailableForAdvancedCodecs()
-                    ? "macOS uses native recording for H.264. HEVC, VP9, and AV1 automatically switch to FFmpeg in this build."
-                    : "macOS native recording currently covers H.264 only. Install FFmpeg to enable HEVC, VP9, and AV1 recording.";
-            }
-            else
-            {
-                return "Platform-specific recording support not yet implemented. FFmpeg fallback will be used.";
-            }
-        }
-    }
+    public string EncoderInfo => "Platform-specific recording support not yet implemented. FFmpeg fallback will be used.";
 
     /// <summary>
-    /// Platform-specific feature description
+    /// Feature description
     /// </summary>
-    public string FeatureDescription
-    {
-        get
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                return "Record your screen to MP4 video using native Windows.Graphics.Capture";
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                return "Record your screen to MP4 video using FFmpeg";
-            }
-            else if (OperatingSystem.IsLinux())
-            {
-                return "Record your screen to MP4 video using FFmpeg";
-            }
-            else
-            {
-                return "Record your screen to MP4 video";
-            }
-        }
-    }
+    public string FeatureDescription => "Record your screen to MP4 video using FFmpeg";
 
     /// <summary>
-    /// Platform-specific usage notes
+    /// Usage notes
     /// </summary>
-    public string UsageNotes
-    {
-        get
-        {
-            if (OperatingSystem.IsWindows() && Environment.OSVersion.Version.Build >= 17134)
-            {
-                return IsFfmpegAvailableForAdvancedCodecs()
-                    ? "Note: H.264 records through Windows.Graphics.Capture + Media Foundation. HEVC, VP9, and AV1 are routed through FFmpeg automatically."
-                    : "Note: H.264 records through Windows.Graphics.Capture + Media Foundation. Install FFmpeg to unlock HEVC, VP9, and AV1.";
-            }
-            else if (OperatingSystem.IsWindows())
-            {
-                return "Note: Recording uses FFmpeg for video encoding. Requires Windows 10 1803+ for native Windows.Graphics.Capture support.";
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                return IsFfmpegAvailableForAdvancedCodecs()
-                    ? "Note: H.264 records natively. HEVC, VP9, and AV1 use FFmpeg on macOS in this build."
-                    : "Note: Install FFmpeg if you want HEVC, VP9, or AV1 on macOS.";
-            }
-            else
-            {
-                return "Note: Recording uses FFmpeg for video encoding. Ensure FFmpeg is installed and accessible in your system PATH.";
-            }
-        }
-    }
+    public string UsageNotes => "Note: Recording uses FFmpeg for video encoding. Ensure FFmpeg is installed and accessible in your system PATH.";
 
     public RecordingViewModel(IScreenRecordingCoordinator screenRecordingCoordinator)
     {
@@ -532,10 +460,6 @@ public partial class RecordingViewModel : ViewModelBase, IDisposable
         {
             recordingSettings.Codec = VideoCodec.H264;
             CodecAvailabilityMessage = "FFmpeg is not available, so advanced codecs are hidden and the recording codec was reset to H.264.";
-        }
-        else if ((OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()) && !IsFfmpegAvailableForAdvancedCodecs())
-        {
-            CodecAvailabilityMessage = "Install FFmpeg to enable HEVC, VP9, and AV1 on this platform.";
         }
         else
         {

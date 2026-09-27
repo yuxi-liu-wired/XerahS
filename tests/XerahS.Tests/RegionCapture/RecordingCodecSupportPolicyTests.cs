@@ -31,38 +31,20 @@ namespace XerahS.Tests.RegionCapture;
 [TestFixture]
 public class RecordingCodecSupportPolicyTests
 {
-    [Test]
-    public void RequiresFfmpegFallback_WindowsNonH264_ReturnsTrue()
+    [TestCase(VideoCodec.H264)]
+    [TestCase(VideoCodec.HEVC)]
+    [TestCase(VideoCodec.VP9)]
+    [TestCase(VideoCodec.AV1)]
+    public void RequiresFfmpegFallback_EveryCodec_ReturnsFalse(VideoCodec codec)
     {
-        Assert.Multiple(() =>
-        {
-            Assert.That(RecordingCodecSupportPolicy.RequiresFfmpegFallback(VideoCodec.HEVC, isWindows: true, isMacOS: false, isLinux: false), Is.True);
-            Assert.That(RecordingCodecSupportPolicy.RequiresFfmpegFallback(VideoCodec.VP9, isWindows: true, isMacOS: false, isLinux: false), Is.True);
-            Assert.That(RecordingCodecSupportPolicy.RequiresFfmpegFallback(VideoCodec.AV1, isWindows: true, isMacOS: false, isLinux: false), Is.True);
-            Assert.That(RecordingCodecSupportPolicy.RequiresFfmpegFallback(VideoCodec.H264, isWindows: true, isMacOS: false, isLinux: false), Is.False);
-        });
+        Assert.That(RecordingCodecSupportPolicy.RequiresFfmpegFallback(codec), Is.False);
     }
 
-    [Test]
-    public void GetSelectableCodecs_WindowsWithoutFfmpeg_ReturnsH264Only()
+    [TestCase(false)]
+    [TestCase(true)]
+    public void GetSelectableCodecs_KeepsAllCodecsWithOrWithoutFfmpeg(bool ffmpegAvailable)
     {
-        var codecs = RecordingCodecSupportPolicy.GetSelectableCodecs(
-            ffmpegAvailable: false,
-            isWindows: true,
-            isMacOS: false,
-            isLinux: false);
-
-        Assert.That(codecs, Is.EqualTo(new[] { VideoCodec.H264 }));
-    }
-
-    [Test]
-    public void GetSelectableCodecs_LinuxWithoutFfmpeg_KeepsAllCodecs()
-    {
-        var codecs = RecordingCodecSupportPolicy.GetSelectableCodecs(
-            ffmpegAvailable: false,
-            isWindows: false,
-            isMacOS: false,
-            isLinux: true);
+        var codecs = RecordingCodecSupportPolicy.GetSelectableCodecs(ffmpegAvailable);
 
         Assert.That(codecs, Is.EqualTo(new[]
         {

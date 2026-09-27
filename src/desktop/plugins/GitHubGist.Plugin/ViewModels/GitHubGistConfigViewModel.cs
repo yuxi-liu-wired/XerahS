@@ -26,6 +26,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
+using XerahS.Common;
 using XerahS.Uploaders;
 using XerahS.Uploaders.PluginSystem;
 using System;
@@ -93,10 +94,7 @@ public partial class GitHubGistConfigViewModel : ObservableObject, IUploaderConf
 
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
+            URLHelpers.OpenURL(url);
         }
         catch (Exception ex)
         {

@@ -98,14 +98,7 @@ public class HotkeyInfo
         if (HasShift) parts.Add("Shift");
         if (HasMeta)
         {
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
-            {
-                parts.Add("Cmd");
-            }
-            else
-            {
-                parts.Add("Win");
-            }
+            parts.Add("Win");
         }
 
         if (!IsOnlyModifiers && Key != Key.None)

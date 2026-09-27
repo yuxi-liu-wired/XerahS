@@ -699,7 +699,7 @@ public class TrayIconHelper : INotifyPropertyChanged
 
     private static bool ShouldShowInTaskbar()
     {
-        return !OperatingSystem.IsMacOS() || !SettingsManager.Settings.SilentRun;
+        return true;
     }
 
     public void OnTrayClick()

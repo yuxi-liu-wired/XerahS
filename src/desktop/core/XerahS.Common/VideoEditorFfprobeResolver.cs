@@ -87,7 +87,7 @@ public static class VideoEditorFfprobeResolver
         {
             string siblingProbePath = Path.Combine(
                 Path.GetDirectoryName(normalizedFfmpegPath) ?? string.Empty,
-                OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe");
+                "ffprobe");
             if (File.Exists(siblingProbePath))
             {
                 return siblingProbePath;

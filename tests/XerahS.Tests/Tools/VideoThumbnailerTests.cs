@@ -293,18 +293,6 @@ public sealed class VideoThumbnailerTests
 
     private static Process CreateSleepingProcess()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return new Process
-            {
-                StartInfo = new ProcessStartInfo("cmd.exe", "/c timeout /t 5 /nobreak > nul")
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-        }
-
         var process = new Process
         {
             StartInfo = new ProcessStartInfo("/bin/sh")
@@ -320,18 +308,6 @@ public sealed class VideoThumbnailerTests
 
     private static Process CreateExitingProcess()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return new Process
-            {
-                StartInfo = new ProcessStartInfo("cmd.exe", "/c exit 0")
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-        }
-
         var process = new Process
         {
             StartInfo = new ProcessStartInfo("/bin/sh")

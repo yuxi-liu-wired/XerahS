@@ -348,24 +348,9 @@ public partial class ImgurConfigViewModel : ObservableObject, IUploaderConfigVie
         {
             try
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url.Replace("&", "^&")}")
-                    {
-                        CreateNoWindow = true
-                    });
-                    return true;
-                }
-
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     Process.Start("xdg-open", url);
-                    return true;
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    Process.Start("open", url);
                     return true;
                 }
             }

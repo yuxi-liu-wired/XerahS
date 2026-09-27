@@ -258,11 +258,6 @@ namespace XerahS.Common
                 Log(category, "SELECTION", $"  Per-monitor DPI scale: {perMonitorScale:F3}");
                 Log(category, "SELECTION", $"  Computed logical: ({logicalX:F1},{logicalY:F1}) {logicalW:F1}x{logicalH:F1}");
                 Log(category, "SELECTION", $"  Alt (per-monitor): ({altLogicalX:F1},?) {altLogicalW:F1}x?");
-
-                if (OperatingSystem.IsWindows() && Math.Abs(overlayScaling - perMonitorScale) > 0.01)
-                {
-                    Log(category, "WARNING", $"  ** SCALING MISMATCH: Overlay={overlayScaling:F3} vs PerMonitor={perMonitorScale:F3} **");
-                }
             }
             catch (Exception ex)
             {

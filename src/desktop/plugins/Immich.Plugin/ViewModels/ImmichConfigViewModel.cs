@@ -770,14 +770,7 @@ public partial class ImmichConfigViewModel : ObservableObject, IUploaderConfigVi
 
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            else
-            {
-                URLHelpers.OpenURL(url);
-            }
+            URLHelpers.OpenURL(url);
         }
         catch
         {

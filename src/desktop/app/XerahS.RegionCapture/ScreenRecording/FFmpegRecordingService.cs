@@ -31,8 +31,7 @@ namespace XerahS.RegionCapture.ScreenRecording;
 
 /// <summary>
 /// FFmpeg-based screen recording service (fallback implementation)
-/// Uses FFmpegCLIManager to orchestrate ffmpeg.exe process
-/// Stage 4: Fallback for systems without Windows.Graphics.Capture support
+/// Uses FFmpegCLIManager to orchestrate the ffmpeg process
 /// </summary>
 public class FFmpegRecordingService : IRecordingService
 {
@@ -273,70 +272,7 @@ public class FFmpegRecordingService : IRecordingService
         var args = new List<string>();
 
         // === Video input (input 0) ===
-        if (OperatingSystem.IsWindows())
-        {
-            switch (options.Mode)
-            {
-                case CaptureMode.Screen:
-                case CaptureMode.Window: // Fallback to region/screen for now
-                case CaptureMode.Region:
-                    // Use gdigrab for screen capture on Windows
-                    args.Add("-f gdigrab");
-                    args.Add("-framerate " + settings.FPS);
-                    if (settings.ShowCursor)
-                    {
-                        args.Add("-draw_mouse 1");
-                    }
-                    else
-                    {
-                         args.Add("-draw_mouse 0");
-                    }
-
-                    if (options.Mode == CaptureMode.Region && options.Region.Width > 0 && options.Region.Height > 0)
-                    {
-                        args.Add($"-offset_x {options.Region.X}");
-                        args.Add($"-offset_y {options.Region.Y}");
-                        args.Add($"-video_size {options.Region.Width}x{options.Region.Height}");
-                    }
-
-                    args.Add("-i desktop");
-                    break;
-            }
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-             // macOS uses avfoundation
-             args.Add("-f avfoundation");
-             args.Add("-framerate " + settings.FPS);
-
-             if (settings.ShowCursor)
-             {
-                 args.Add("-capture_cursor 1");
-             }
-             else
-             {
-                 args.Add("-capture_cursor 0");
-             }
-
-             // Mouse clicks visualization optional
-             // args.Add("-capture_mouse_clicks 1");
-
-             // For now default to screen 1.
-             // Ideally we would enumerate screens or look at options.Region to determine screen index.
-             // But for MVP/Fix, "1" or "1:" is usually main screen.
-             // Using "1" as video input.
-             // Note: avfoundation input format is "video_device:audio_device" or just "video_device"
-             args.Add("-i \"1\"");
-
-             // Region capture in avfoundation is not directly supported via offset/size args like gdigrab
-             // It usually requires a complex filter chain (crop).
-             if (options.Mode == CaptureMode.Region && options.Region.Width > 0 && options.Region.Height > 0)
-             {
-                 // Add crop filter: crop=w:h:x:y
-                 args.Add($"-vf \"crop={options.Region.Width}:{options.Region.Height}:{options.Region.X}:{options.Region.Y}\"");
-             }
-        }
-        else if (OperatingSystem.IsLinux())
+        if (OperatingSystem.IsLinux())
         {
              // Basic Linux fallback (x11grab, X11 only).
              // Guard against invalid 0x0 region args for non-region capture modes.
@@ -362,30 +298,7 @@ public class FFmpegRecordingService : IRecordingService
         // === Audio input (input 1) — must come right after video input, before codec/output args ===
         if (hasAudio)
         {
-            if (OperatingSystem.IsWindows())
-            {
-                if (settings.CaptureSystemAudio)
-                {
-                    args.Add("-f dshow");
-                    args.Add("-i audio=\"Stereo Mix\"");
-                    DebugHelper.WriteLine("FFmpeg: Capturing system audio via Stereo Mix (dshow)");
-                    DebugHelper.WriteLine("  Note: Requires 'Stereo Mix' to be enabled in Windows Sound settings");
-                }
-                else if (settings.CaptureMicrophone)
-                {
-                    args.Add("-f dshow");
-                    if (!string.IsNullOrEmpty(settings.MicrophoneDeviceId))
-                    {
-                        args.Add($"-i audio=\"{settings.MicrophoneDeviceId}\"");
-                    }
-                    else
-                    {
-                        args.Add("-i audio=\"@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{00000000-0000-0000-0000-000000000000}\"");
-                    }
-                    DebugHelper.WriteLine("FFmpeg: Capturing microphone audio via dshow");
-                }
-            }
-            else if (OperatingSystem.IsLinux())
+            if (OperatingSystem.IsLinux())
             {
                 args.Add("-f pulse");
                 if (settings.CaptureSystemAudio)
@@ -401,12 +314,6 @@ public class FFmpegRecordingService : IRecordingService
                         : "-i default");
                     DebugHelper.WriteLine("FFmpeg: Capturing microphone via PulseAudio (Linux)");
                 }
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                args.Add("-f avfoundation");
-                args.Add("-i \":0\""); // Default audio device
-                DebugHelper.WriteLine("FFmpeg: Capturing audio via avfoundation (macOS)");
             }
         }
 

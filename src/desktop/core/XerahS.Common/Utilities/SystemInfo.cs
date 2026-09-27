@@ -49,11 +49,6 @@ public static class SystemInfo
         return GetTimestamp(DateTime.Now);
     }
 
-    public static bool IsWindows10OrGreater()
-    {
-        return OperatingSystem.IsWindowsVersionAtLeast(10, 0);
-    }
-
     public static string GetApplicationVersion(bool includeRevision = false)
     {
         var assembly = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetExecutingAssembly();

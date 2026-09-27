@@ -117,19 +117,7 @@ namespace XerahS.App
                 dh.WriteLine($"Operating system: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} ({System.Runtime.InteropServices.RuntimeInformation.OSArchitecture})");
                 dh.WriteLine($".NET version: {System.Environment.Version}");
 
-                bool isElevated = false;
-                if (OperatingSystem.IsWindows())
-                {
-                    using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
-                    {
-                        if (identity != null)
-                        {
-                            var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                            isElevated = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-                        }
-                    }
-                }
-                dh.WriteLine($"Running as elevated process: {isElevated}");
+                dh.WriteLine($"Running as elevated process: {Environment.IsPrivilegedProcess}");
 #if DEBUG
                 dh.WriteLine("Flags: Debug");
 #else
@@ -287,11 +275,6 @@ namespace XerahS.App
             }
 
             string normalizedPath = NormalizePersonalFolder(personalFolderOverride);
-
-            if (OperatingSystem.IsWindows())
-            {
-                normalizedPath = normalizedPath.ToUpperInvariant();
-            }
 
             byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalizedPath));
             string suffix = Convert.ToHexString(hashBytes).Substring(0, 16);
@@ -580,11 +563,6 @@ namespace XerahS.App
 
         private static WatchFolderDaemonScope ResolveEffectiveWatchFolderDaemonScope()
         {
-            if (OperatingSystem.IsWindows())
-            {
-                return WatchFolderDaemonScope.System;
-            }
-
             return SettingsManager.Settings.WatchFolderDaemonScope;
         }
 
@@ -637,11 +615,7 @@ namespace XerahS.App
                     // Use runtime checks instead of preprocessor directives for reliability
                     XerahS.Common.DebugHelper.WriteLine("Initializing recording platform services...");
 
-                    // Debug: Show which preprocessor symbols are defined
-                    string definedSymbols = "";
-                    definedSymbols += "LINUX ";
-                    XerahS.Common.DebugHelper.WriteLine($"Preprocessor symbols defined: [{definedSymbols.Trim()}]");
-                    XerahS.Common.DebugHelper.WriteLine($"Runtime OS: IsLinux={OperatingSystem.IsLinux()}, IsMacOS={OperatingSystem.IsMacOS()}, IsWindows={OperatingSystem.IsWindows()}");
+                    XerahS.Common.DebugHelper.WriteLine($"Runtime OS: IsLinux={OperatingSystem.IsLinux()}");
                     if (OperatingSystem.IsLinux())
                     {
                         XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "PROGRAM", "Platform is Linux, calling LinuxPlatform.InitializeRecording()");
@@ -740,10 +714,8 @@ namespace XerahS.App
                             mainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
                         }
                         
-                        // Show in taskbar and bring to front. On macOS, SilentRun is also
-                        // the menu-bar-only mode, so the Dock icon should stay hidden.
-                        mainWindow.ShowInTaskbar = !OperatingSystem.IsMacOS() ||
-                            !XerahS.Core.SettingsManager.Settings.SilentRun;
+                        // Show in taskbar and bring to front.
+                        mainWindow.ShowInTaskbar = true;
                         mainWindow.Show();
                         mainWindow.Activate();
                         mainWindow.Topmost = true;
@@ -855,9 +827,7 @@ namespace XerahS.App
 
         private static IncomingPathSet ExtractIncomingPaths(IEnumerable<string> args, bool includeDirectories)
         {
-            var comparer = OperatingSystem.IsWindows()
-                ? StringComparer.OrdinalIgnoreCase
-                : StringComparer.Ordinal;
+            var comparer = StringComparer.Ordinal;
             var uniquePaths = new HashSet<string>(comparer);
             IncomingPathSet paths = new();
 
@@ -917,9 +887,7 @@ namespace XerahS.App
 
         private static IncomingPluginPackageSet ExtractIncomingPluginPackages(IEnumerable<string> args)
         {
-            var comparer = OperatingSystem.IsWindows()
-                ? StringComparer.OrdinalIgnoreCase
-                : StringComparer.Ordinal;
+            var comparer = StringComparer.Ordinal;
             var uniquePaths = new HashSet<string>(comparer);
             IncomingPluginPackageSet packages = new();
             bool nextArgIsPluginPath = false;

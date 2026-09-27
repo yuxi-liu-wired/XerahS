@@ -9,9 +9,9 @@ public class LinuxCliToolRunnerTests
     [Test]
     public void RunForTestAsync_ToolExitsQuickly_ReturnsExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Minimal: tool exits 0 immediately, no output to drain.
@@ -30,9 +30,9 @@ public class LinuxCliToolRunnerTests
     [Test]
     public void RunForTestAsync_StderrExceedsPipeBuffer_ToolDoesNotBlock()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // The OS pipe buffer on POSIX systems is typically 64KB. We write
@@ -65,9 +65,9 @@ public class LinuxCliToolRunnerTests
     [Test]
     public void RunForTestAsync_StderrExceedsPipeBufferNonZeroExit_ReportsExitCode()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Companion to the previous test: large stderr + non-zero exit.
@@ -96,9 +96,9 @@ public class LinuxCliToolRunnerTests
     [Test]
     public void RunForTestAsync_ToolExceedsTimeout_ReturnsNull()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
+        if (!OperatingSystem.IsLinux())
         {
-            Assert.Ignore("POSIX-specific test (Linux/macOS).");
+            Assert.Ignore("Linux-specific test.");
         }
 
         // Tool sleeps for longer than the timeout, then exits 0. The

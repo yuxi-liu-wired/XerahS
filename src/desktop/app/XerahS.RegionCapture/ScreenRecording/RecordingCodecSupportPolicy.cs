@@ -8,11 +8,6 @@ namespace XerahS.RegionCapture.ScreenRecording;
 /// </summary>
 public static class RecordingCodecSupportPolicy
 {
-    private static readonly IReadOnlyList<VideoCodec> NativeOnlyCodecs = new[]
-    {
-        VideoCodec.H264
-    };
-
     private static readonly IReadOnlyList<VideoCodec> AllCodecs = new[]
     {
         VideoCodec.H264,
@@ -21,59 +16,16 @@ public static class RecordingCodecSupportPolicy
         VideoCodec.AV1
     };
 
+    /// <summary>
+    /// The Linux recording backend encodes every codec itself, with or without FFmpeg installed.
+    /// </summary>
     public static IReadOnlyList<VideoCodec> GetSelectableCodecs(bool ffmpegAvailable)
     {
-        return GetSelectableCodecs(
-            ffmpegAvailable,
-            OperatingSystem.IsWindows(),
-            OperatingSystem.IsMacOS(),
-            OperatingSystem.IsLinux());
+        return AllCodecs;
     }
 
     public static bool RequiresFfmpegFallback(VideoCodec codec)
     {
-        return RequiresFfmpegFallback(
-            codec,
-            OperatingSystem.IsWindows(),
-            OperatingSystem.IsMacOS(),
-            OperatingSystem.IsLinux());
-    }
-
-    internal static IReadOnlyList<VideoCodec> GetSelectableCodecs(
-        bool ffmpegAvailable,
-        bool isWindows,
-        bool isMacOS,
-        bool isLinux)
-    {
-        if (isLinux)
-        {
-            return AllCodecs;
-        }
-
-        if ((isWindows || isMacOS) && ffmpegAvailable)
-        {
-            return AllCodecs;
-        }
-
-        return NativeOnlyCodecs;
-    }
-
-    internal static bool RequiresFfmpegFallback(
-        VideoCodec codec,
-        bool isWindows,
-        bool isMacOS,
-        bool isLinux)
-    {
-        if (codec == VideoCodec.H264)
-        {
-            return false;
-        }
-
-        if (isLinux)
-        {
-            return false;
-        }
-
-        return isWindows || isMacOS;
+        return false;
     }
 }

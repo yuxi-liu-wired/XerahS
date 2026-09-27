@@ -42,8 +42,6 @@ namespace XerahS.Common
         protected enum RuntimePlatform
         {
             Unknown,
-            Windows,
-            MacOS,
             Linux
         }
 
@@ -262,12 +260,6 @@ namespace XerahS.Common
 
                     GitHubAsset? asset = FindAssetBySuffixes(release.assets, preferredSuffixes);
 
-                    if (asset == null)
-                    {
-                        // Keep legacy fallback intentionally platform-scoped to prevent cross-platform picks.
-                        asset = FindLegacyFallbackAsset(release.assets, runtimePlatform, isPortable);
-                    }
-
                     if (asset != null)
                     {
                         FileName = asset.name ?? string.Empty;
@@ -288,16 +280,6 @@ namespace XerahS.Common
 
         protected virtual RuntimePlatform GetRuntimePlatform()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return RuntimePlatform.Windows;
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return RuntimePlatform.MacOS;
-            }
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return RuntimePlatform.Linux;
@@ -320,17 +302,6 @@ namespace XerahS.Common
         {
             return runtimePlatform switch
             {
-                RuntimePlatform.Windows => isPortable
-                    ? [ $"-win-{archToken}-portable.zip", $"-win-{archToken}.zip" ]
-                    : [ $"-win-{archToken}.exe" ],
-                RuntimePlatform.MacOS =>
-                [
-                    $"-mac-{archToken}.tar.gz",
-                    $"-osx-{archToken}.dmg",
-                    $"-osx-{archToken}.zip",
-                    $"-mac-{archToken}.zip",
-                    $"-macos-{archToken}.zip"
-                ],
                 RuntimePlatform.Linux => isPortable
                     ? [ $"-linux-{archToken}.tar.gz", $"-linux-{archToken}.AppImage" ]
                     : [ $"-linux-{archToken}.deb", $"-linux-{archToken}.tar.gz", $"-linux-{archToken}.rpm" ],
@@ -352,28 +323,6 @@ namespace XerahS.Common
             }
 
             return null;
-        }
-
-        private static GitHubAsset? FindLegacyFallbackAsset(GitHubAsset[] assets, RuntimePlatform runtimePlatform, bool isPortable)
-        {
-            if (runtimePlatform != RuntimePlatform.Windows)
-            {
-                return null;
-            }
-
-            string[] legacySuffixes = isPortable
-                ? [ "portable.zip" ]
-                : [ "-setup.exe", "setup.exe", ".exe" ];
-
-            // Architecture-qualified portable archives must never be treated as generic legacy assets.
-            GitHubAsset[] legacyAssets = isPortable
-                ? assets.Where(asset => asset?.name != null &&
-                    !asset.name.Contains("-win-", StringComparison.OrdinalIgnoreCase) &&
-                    !asset.name.Contains("-linux-", StringComparison.OrdinalIgnoreCase) &&
-                    !asset.name.Contains("-mac-", StringComparison.OrdinalIgnoreCase) &&
-                    !asset.name.Contains("-osx-", StringComparison.OrdinalIgnoreCase)).ToArray()
-                : assets;
-            return FindAssetBySuffixes(legacyAssets, legacySuffixes);
         }
 
         protected class GitHubRelease

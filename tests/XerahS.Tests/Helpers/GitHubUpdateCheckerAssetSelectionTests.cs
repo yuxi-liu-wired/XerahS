@@ -48,15 +48,11 @@ public class GitHubUpdateCheckerAssetSelectionTests
         "XerahS-1.2.3-linux-arm64.AppImage"
     ];
 
-    [TestCase("windows", Architecture.X64, "XerahS-1.2.3-win-x64.exe")]
-    [TestCase("windows", Architecture.Arm64, "XerahS-1.2.3-win-arm64.exe")]
-    [TestCase("linux", Architecture.X64, "XerahS-1.2.3-linux-x64.deb")]
-    [TestCase("linux", Architecture.Arm64, "XerahS-1.2.3-linux-arm64.deb")]
-    [TestCase("macos", Architecture.X64, "XerahS-1.2.3-mac-x64.tar.gz")]
-    [TestCase("macos", Architecture.Arm64, "XerahS-1.2.3-mac-arm64.tar.gz")]
-    public void UpdateReleaseInfo_SelectsAssetForEachRuntimeCombination(string runtimePlatform, Architecture architecture, string expectedAsset)
+    [TestCase(Architecture.X64, "XerahS-1.2.3-linux-x64.deb")]
+    [TestCase(Architecture.Arm64, "XerahS-1.2.3-linux-arm64.deb")]
+    public void UpdateReleaseInfo_SelectsAssetForEachArchitecture(Architecture architecture, string expectedAsset)
     {
-        var checker = new TestGitHubUpdateChecker(runtimePlatform, architecture);
+        var checker = new TestGitHubUpdateChecker("linux", architecture);
 
         bool resolved = checker.TryResolveAssets(AllReleaseAssets, isPortable: false);
 
@@ -65,34 +61,20 @@ public class GitHubUpdateCheckerAssetSelectionTests
     }
 
     [Test]
-    public void UpdateReleaseInfo_OnMacOS_DoesNotFallbackToWindowsExeWhenMacAssetsMissing()
+    public void UpdateReleaseInfo_OnLinux_DoesNotFallbackToOtherPlatformAssets()
     {
-        var checker = new TestGitHubUpdateChecker("macos", Architecture.Arm64);
-        string[] windowsOnlyAssets =
+        var checker = new TestGitHubUpdateChecker("linux", Architecture.X64);
+        string[] otherPlatformAssets =
         [
             "XerahS-1.2.3-win-x64.exe",
-            "XerahS-1.2.3-win-arm64.exe"
+            "XerahS-setup.exe",
+            "XerahS-1.2.3-mac-x64.tar.gz"
         ];
 
-        bool resolved = checker.TryResolveAssets(windowsOnlyAssets, isPortable: false);
+        bool resolved = checker.TryResolveAssets(otherPlatformAssets, isPortable: false);
 
         Assert.That(resolved, Is.False);
         Assert.That(checker.DownloadURL, Is.Null);
-    }
-
-    [Test]
-    public void UpdateReleaseInfo_OnWindows_UsesLegacySetupFallback()
-    {
-        var checker = new TestGitHubUpdateChecker("windows", Architecture.X64);
-        string[] legacyAssets =
-        [
-            "XerahS-setup.exe"
-        ];
-
-        bool resolved = checker.TryResolveAssets(legacyAssets, isPortable: false);
-
-        Assert.That(resolved, Is.True);
-        Assert.That(checker.FileName, Is.EqualTo("XerahS-setup.exe"));
     }
 
     [Test]
@@ -127,43 +109,6 @@ public class GitHubUpdateCheckerAssetSelectionTests
         Assert.That(checker.FileName, Is.EqualTo("XerahS-1.2.3-linux-x64.AppImage"));
     }
 
-    [TestCase(Architecture.X64, "x64")]
-    [TestCase(Architecture.Arm64, "arm64")]
-    public void UpdateReleaseInfo_OnWindowsPortable_PrefersMatchingPortableArchive(Architecture architecture, string token)
-    {
-        var checker = new TestGitHubUpdateChecker("windows", architecture);
-        string[] assets =
-        [
-            "XerahS-1.2.3-portable.zip",
-            $"XerahS-1.2.3-win-{token}.zip",
-            "XerahS-1.2.3-win-arm64-portable.zip",
-            "XerahS-1.2.3-win-x64-portable.zip"
-        ];
-
-        Assert.That(checker.TryResolveAssets(assets, isPortable: true), Is.True);
-        Assert.That(checker.FileName, Is.EqualTo($"XerahS-1.2.3-win-{token}-portable.zip"));
-    }
-
-    [TestCase("XerahS-1.2.3-win-arm64-portable.zip")]
-    [TestCase("XerahS-1.2.3-linux-x64-portable.zip")]
-    public void UpdateReleaseInfo_OnWindowsPortable_RejectsIncompatiblePortableArchive(string asset)
-    {
-        var checker = new TestGitHubUpdateChecker("windows", Architecture.X64);
-
-        Assert.That(checker.TryResolveAssets([asset], isPortable: true), Is.False);
-        Assert.That(checker.DownloadURL, Is.Null);
-    }
-
-    [TestCase("XerahS-1.2.3-win-x64.zip")]
-    [TestCase("XerahS-1.2.3-portable.zip")]
-    public void UpdateReleaseInfo_OnWindowsPortable_RetainsLegacyArchives(string asset)
-    {
-        var checker = new TestGitHubUpdateChecker("windows", Architecture.X64);
-
-        Assert.That(checker.TryResolveAssets([asset], isPortable: true), Is.True);
-        Assert.That(checker.FileName, Is.EqualTo(asset));
-    }
-
     private sealed class TestGitHubUpdateChecker(string runtimePlatform, Architecture architecture) : GitHubUpdateChecker("ShareX", "XerahS")
     {
         private readonly string _runtimePlatform = runtimePlatform;
@@ -178,9 +123,7 @@ public class GitHubUpdateCheckerAssetSelectionTests
         {
             return _runtimePlatform.ToLowerInvariant() switch
             {
-                "windows" => RuntimePlatform.Windows,
                 "linux" => RuntimePlatform.Linux,
-                "macos" => RuntimePlatform.MacOS,
                 _ => RuntimePlatform.Unknown
             };
         }

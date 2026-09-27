@@ -845,20 +845,6 @@
              <TabItem Header="Advanced">
                 <ScrollViewer controls:SettingsSearch.PageId="advanced">
                     <StackPanel Spacing="24" Margin="24">
-                        <StackPanel controls:SettingsSearch.IsAvailabilityContainer="True" IsVisible="{Binding ShowUseModernCaptureSetting}">
-                            <StackPanel Spacing="8" controls:SettingsSearch.IsPanel="True">
-                                <TextBlock Text="Capture Engine" FontWeight="SemiBold"/>
-                                <Border BorderThickness="1" 
-                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" 
-                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" 
-                                        CornerRadius="4" Padding="16">
-                                    <StackPanel Spacing="16">
-                                        <CheckBox IsChecked="{Binding UseModernCapture}" Content="Use Modern Screen Capture (XDG Portal). Requires restart." AutomationProperties.Name="Use Modern Capture"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </StackPanel>
-
                         <StackPanel controls:SettingsSearch.IsAvailabilityContainer="True" IsVisible="{Binding IsLinuxPlatform}">
                             <StackPanel Spacing="8" controls:SettingsSearch.IsPanel="True">
                                 <TextBlock Text="Linux Region Selector" FontWeight="SemiBold"/>

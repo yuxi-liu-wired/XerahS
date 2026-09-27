@@ -76,9 +76,9 @@ public class TestProjectBuildPropertiesTests
     }
 
     [Test]
-    public void WindowsPlatformProject_DoesNotReferenceCore()
+    public void LinuxPlatformProject_DoesNotReferenceCore()
     {
-        XDocument project = LoadRepositoryXml("src/platform/XerahS.Platform.Windows/XerahS.Platform.Windows.csproj");
+        XDocument project = LoadRepositoryXml("src/platform/XerahS.Platform.Linux/XerahS.Platform.Linux.csproj");
         var references = project.Descendants("ProjectReference")
             .Select(element => (string?)element.Attribute("Include"))
             .Where(path => path is not null)

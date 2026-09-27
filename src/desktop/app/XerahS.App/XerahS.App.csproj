@@ -2,42 +2,16 @@
   <PropertyGroup>
     <RootNamespace>XerahS.App</RootNamespace>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\..'))\</RepoRoot>
-    <IsWindowsDesktopBuild>false</IsWindowsDesktopBuild>
-    <IsMacOSDesktopBuild>false</IsMacOSDesktopBuild>
-    <IsLinuxDesktopBuild>false</IsLinuxDesktopBuild>
-    <IsWindowsDesktopBuild Condition="$(RuntimeIdentifier.StartsWith('win')) Or ('$(OS)' == 'Windows_NT' And '$(RuntimeIdentifier)' == '' And '$(CrossCompile)' != 'true')">true</IsWindowsDesktopBuild>
-    <IsMacOSDesktopBuild Condition="$(RuntimeIdentifier.StartsWith('osx')) Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('OSX')))">true</IsMacOSDesktopBuild>
-    <IsLinuxDesktopBuild Condition="$(RuntimeIdentifier.StartsWith('linux')) Or ('$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Linux')))">true</IsLinuxDesktopBuild>
     <TargetFramework>net10.0</TargetFramework>
-    <TargetFramework Condition="'$(IsWindowsDesktopBuild)' == 'true'">net10.0-windows10.0.26100.0</TargetFramework>
-    <OutputType Condition="'$(IsWindowsDesktopBuild)' == 'true'">WinExe</OutputType>
-    <OutputType Condition="'$(IsWindowsDesktopBuild)' == 'true' And '$(Configuration)' == 'Debug'">Exe</OutputType>
-    <OutputType Condition="'$(IsWindowsDesktopBuild)' != 'true'">Exe</OutputType>
+    <OutputType>Exe</OutputType>
     <AssemblyName>XerahS</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>..\XerahS.UI\Assets\Logo.ico</ApplicationIcon>
-    <DefineConstants Condition="'$(IsWindowsDesktopBuild)' == 'true'">$(DefineConstants);WINDOWS</DefineConstants>
-    <DefineConstants Condition="'$(IsMacOSDesktopBuild)' == 'true'">$(DefineConstants);MACOS</DefineConstants>
-    <DefineConstants Condition="'$(IsLinuxDesktopBuild)' == 'true'">$(DefineConstants);LINUX</DefineConstants>
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
     <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <SelfContained Condition="'$(Configuration)' == 'Release' And '$(RuntimeIdentifier)' != ''">true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
-  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) OR $(RuntimeIdentifier.StartsWith('osx'))">
-    <Content Include="$(RepoRoot)native/macos/libscreencapturekit_bridge.dylib">
-      <Link>libscreencapturekit_bridge.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <Target Name="BuildNativeMacOS" BeforeTargets="BeforeBuild"
-          Condition="$([MSBuild]::IsOSPlatform('OSX'))"
-          Inputs="$(RepoRoot)native/macos/screencapturekit_bridge.m;$(RepoRoot)native/macos/screencapturekit_bridge.h"
-          Outputs="$(RepoRoot)native/macos/libscreencapturekit_bridge.dylib">
-    <Message Text="Building native macOS library..." Importance="high" />
-    <Exec Command="make -C &quot;$(RepoRoot)native/macos&quot;" />
-  </Target>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
@@ -52,56 +26,14 @@
                       Condition="'$(AssembleProduct)' == 'true'"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      AdditionalProperties="RuntimeIdentifier=$(RuntimeIdentifier);RuntimeIdentifiers=$(RuntimeIdentifier);CrossCompile=$(CrossCompile)" />
+                      AdditionalProperties="RuntimeIdentifier=$(RuntimeIdentifier);RuntimeIdentifiers=$(RuntimeIdentifier)" />
     <ProjectReference Include="..\..\cli\XerahS.OmaXerahs\XerahS.OmaXerahs.csproj"
                       Condition="'$(AssembleProduct)' == 'true'"
                       ReferenceOutputAssembly="false"
                       SkipGetTargetFrameworkProperties="true"
-                      AdditionalProperties="RuntimeIdentifier=$(RuntimeIdentifier);RuntimeIdentifiers=$(RuntimeIdentifier);CrossCompile=$(CrossCompile)" />
-    <ProjectReference Include="..\..\..\platform\XerahS.Platform.Windows\XerahS.Platform.Windows.csproj" Condition="'$(IsWindowsDesktopBuild)' == 'true'" />
-    <ProjectReference Include="..\..\..\platform\XerahS.Platform.MacOS\XerahS.Platform.MacOS.csproj" Condition="'$(IsMacOSDesktopBuild)' == 'true'" />
-    <ProjectReference Include="..\..\..\platform\XerahS.Platform.Linux\XerahS.Platform.Linux.csproj" Condition="'$(IsLinuxDesktopBuild)' == 'true'" />
+                      AdditionalProperties="RuntimeIdentifier=$(RuntimeIdentifier);RuntimeIdentifiers=$(RuntimeIdentifier)" />
+    <ProjectReference Include="..\..\..\platform\XerahS.Platform.Linux\XerahS.Platform.Linux.csproj" />
   </ItemGroup>
-  <Target Name="CreateMacOSAppBundle" AfterTargets="Publish" Condition="('$(OS)' != 'Windows_NT' Or '$(CrossCompile)' == 'true') And ('$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'osx-arm64')">
-    <PropertyGroup>
-    <RootNamespace>XerahS.App</RootNamespace>
-      <_MacAppBundle>$(PublishDir)$(AssemblyName).app</_MacAppBundle>
-      <_MacContents>$(_MacAppBundle)/Contents</_MacContents>
-      <_MacMacOS>$(_MacContents)/MacOS</_MacMacOS>
-      <_MacResources>$(_MacContents)/Resources</_MacResources>
-      <_MacPlist>$(_MacContents)/Info.plist</_MacPlist>
-    </PropertyGroup>
-    <MakeDir Directories="$(_MacMacOS);$(_MacResources)" />
-    <ItemGroup>
-      <_MacPublishFiles Include="$(PublishDir)**" Exclude="$(PublishDir)*.app/**;$(PublishDir)*.pdb;$(PublishDir)*.xml;$(PublishDir)Plugins/**" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_MacPublishFiles)" DestinationFolder="$(_MacMacOS)/%(_MacPublishFiles.RecursiveDir)" SkipUnchangedFiles="true" Condition="'@(_MacPublishFiles)' != ''" />
-    <!-- XIP0078 P1: render Info.plist from the static template so the bundle carries the full
-         identity/usage-description set (stable reverse-DNS bundle ID, NSAppleEventsUsageDescription,
-         LSMinimumSystemVersion, ...). Always overwrite so republish never leaves a stale plist.
-         String replacement is done with property functions instead of sed so Windows
-         cross-compilation (package-mac.ps1, CrossCompile=true) produces the same plist. -->
-    <PropertyGroup>
-      <_MacMinOS>12.3</_MacMinOS>
-      <_MacPlistTemplate>$(RepoRoot)build/macos/Info.plist.template</_MacPlistTemplate>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(_MacPlistTemplate)')" Text="macOS Info.plist template not found: $(_MacPlistTemplate)" />
-    <PropertyGroup>
-      <_MacPlistContent>$([System.IO.File]::ReadAllText('$(_MacPlistTemplate)').Replace('__EXECUTABLE__', '$(AssemblyName)').Replace('__VERSION__', '$(Version)').Replace('__MIN_OS__', '$(_MacMinOS)'))</_MacPlistContent>
-    </PropertyGroup>
-    <WriteLinesToFile File="$(_MacPlist)" Lines="$(_MacPlistContent)" Overwrite="true" />
-  </Target>
-  <Target Name="ConfigureMacOSBundleIcon" AfterTargets="CreateMacOSAppBundle" Condition="'$(OS)' != 'Windows_NT' And Exists('/usr/libexec/PlistBuddy') And ('$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'osx-arm64')">
-    <PropertyGroup>
-    <RootNamespace>XerahS.App</RootNamespace>
-      <_MacAppBundle>$(PublishDir)$(AssemblyName).app</_MacAppBundle>
-      <_MacPlist>$(_MacAppBundle)/Contents/Info.plist</_MacPlist>
-      <_MacResources>$(_MacAppBundle)/Contents/Resources</_MacResources>
-    </PropertyGroup>
-    <Copy SourceFiles="..\XerahS.UI\Assets\Logo.icns" DestinationFiles="$(_MacResources)/Logo.icns" Condition="Exists('$(_MacAppBundle)')" />
-    <Exec Command="/bin/sh -c 'if /usr/libexec/PlistBuddy -c &quot;Print :CFBundleIconFile&quot; &quot;$(_MacPlist)&quot; &gt;/dev/null 2&gt;&amp;1; then /usr/libexec/PlistBuddy -c &quot;Set :CFBundleIconFile Logo&quot; &quot;$(_MacPlist)&quot;; else /usr/libexec/PlistBuddy -c &quot;Add :CFBundleIconFile string Logo&quot; &quot;$(_MacPlist)&quot;; fi'" Condition="Exists('$(_MacPlist)')" />
-    <Exec Command="/bin/sh -c 'if /usr/libexec/PlistBuddy -c &quot;Print :CFBundleIconName&quot; &quot;$(_MacPlist)&quot; &gt;/dev/null 2&gt;&amp;1; then /usr/libexec/PlistBuddy -c &quot;Set :CFBundleIconName Logo&quot; &quot;$(_MacPlist)&quot;; else /usr/libexec/PlistBuddy -c &quot;Add :CFBundleIconName string Logo&quot; &quot;$(_MacPlist)&quot;; fi'" Condition="Exists('$(_MacPlist)')" />
-  </Target>
 
   <!--
     Publish the watch-folder daemon to an intermediate directory, then copy
@@ -112,7 +44,7 @@
     flattens them to $(PublishDir) using %(Filename)%(Extension) to preserve
     the actual output extension (e.g. .dll on some RIDs, no extension on native).
   -->
-  <Target Name="PublishWatchFolderDaemon" AfterTargets="CreateMacOSAppBundle">
+  <Target Name="PublishWatchFolderDaemon" AfterTargets="Publish">
     <Message Text="Publishing watch folder daemon..." Importance="High" />
     <PropertyGroup>
       <_WatchFolderDaemonPublishDir>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)watchfolder-daemon-publish/</_WatchFolderDaemonPublishDir>
@@ -144,20 +76,9 @@
     <Error Condition="'@(_WatchFolderDaemonPublishedFiles)' == ''"
            Text="Watch folder daemon publish output is empty: $(_WatchFolderDaemonPublishDir)" />
 
-    <!--
-      On macOS, the daemon must end up inside the .app bundle's Contents/MacOS/
-      subdirectory. On other platforms it goes to $(PublishDir) root.
-    -->
-    <MakeDir Directories="$(PublishDir)$(AssemblyName).app/Contents/MacOS" Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
-    <MakeDir Directories="$(PublishDir)$(AssemblyName).app/Contents/Resources" Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
-    <Copy SourceFiles="@(_WatchFolderDaemonPublishedFiles)"
-          DestinationFiles="@(_WatchFolderDaemonPublishedFiles->'$(PublishDir)$(AssemblyName).app/Contents/MacOS/%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
     <Copy SourceFiles="@(_WatchFolderDaemonPublishedFiles)"
           DestinationFiles="@(_WatchFolderDaemonPublishedFiles->'$(PublishDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          Condition="!$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
+          SkipUnchangedFiles="true" />
 
     <!-- .NET 10+ single-file publish embeds runtimeconfig and no longer writes the sidecar. -->
     <PropertyGroup>
@@ -170,27 +91,9 @@
   </Target>
 
   <Target Name="ValidatePublishedWatchFolderDaemon" AfterTargets="PublishWatchFolderDaemon">
-    <PropertyGroup>
-      <_WatchFolderDaemonExecutableName>xerahs-watchfolder-daemon</_WatchFolderDaemonExecutableName>
-      <_WatchFolderDaemonExecutableName Condition="$(RuntimeIdentifier.StartsWith('win'))">xerahs-watchfolder-daemon.exe</_WatchFolderDaemonExecutableName>
-      <_WatchFolderDaemonExecutableName Condition="'$(RuntimeIdentifier)' == '' and '$(OS)' == 'Windows_NT'">xerahs-watchfolder-daemon.exe</_WatchFolderDaemonExecutableName>
-      <_WatchFolderDaemonRequireRuntimeConfig>true</_WatchFolderDaemonRequireRuntimeConfig>
-      <_WatchFolderDaemonRequireRuntimeConfig Condition="$(RuntimeIdentifier.StartsWith('win'))">false</_WatchFolderDaemonRequireRuntimeConfig>
-      <_WatchFolderDaemonRequireRuntimeConfig Condition="'$(RuntimeIdentifier)' == '' and '$(OS)' == 'Windows_NT'">false</_WatchFolderDaemonRequireRuntimeConfig>
-    </PropertyGroup>
-
-    <!--
-      Validate the daemon ended up at the FINAL destination. On macOS the Copy
-      uses $(PublishDir)$(AssemblyName).app/Contents/MacOS/ explicitly. On other
-      platforms the daemon goes to $(PublishDir) root.
-    -->
-    <Error Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(AssemblyName).app/Contents/MacOS/$(_WatchFolderDaemonExecutableName)')"
-           Text="Missing watch folder daemon executable at final destination: $(PublishDir)$(AssemblyName).app/Contents/MacOS/$(_WatchFolderDaemonExecutableName)" />
-    <Error Condition="!$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(_WatchFolderDaemonExecutableName)')"
-           Text="Missing watch folder daemon executable at final destination: $(PublishDir)$(_WatchFolderDaemonExecutableName)" />
-    <Error Condition="'$(_WatchFolderDaemonRequireRuntimeConfig)' == 'true' and $([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(AssemblyName).app/Contents/MacOS/xerahs-watchfolder-daemon.runtimeconfig.json')"
-           Text="Missing watch folder daemon runtimeconfig at final destination" />
-    <Error Condition="'$(_WatchFolderDaemonRequireRuntimeConfig)' == 'true' and !$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)xerahs-watchfolder-daemon.runtimeconfig.json')"
+    <Error Condition="!Exists('$(PublishDir)xerahs-watchfolder-daemon')"
+           Text="Missing watch folder daemon executable at final destination: $(PublishDir)xerahs-watchfolder-daemon" />
+    <Error Condition="!Exists('$(PublishDir)xerahs-watchfolder-daemon.runtimeconfig.json')"
            Text="Missing watch folder daemon runtimeconfig at final destination" />
   </Target>
 
@@ -199,7 +102,7 @@
     PublishDir. Same approach as PublishWatchFolderDaemon: uses a recursive glob
     to handle whatever RID subdirectory structure dotnet publish creates.
   -->
-  <Target Name="PublishOmaXerahs" AfterTargets="CreateMacOSAppBundle">
+  <Target Name="PublishOmaXerahs" AfterTargets="Publish">
     <Message Text="Publishing omaxerahs..." Importance="High" />
     <PropertyGroup>
       <_OmaXerahsPublishDir>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)omaxerahs-publish/</_OmaXerahsPublishDir>
@@ -225,16 +128,9 @@
     <Error Condition="'@(_OmaXerahsPublishedFiles)' == ''"
            Text="omaxerahs publish output is empty: $(_OmaXerahsPublishDir)" />
 
-    <MakeDir Directories="$(PublishDir)$(AssemblyName).app/Contents/MacOS" Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
-    <MakeDir Directories="$(PublishDir)$(AssemblyName).app/Contents/Resources" Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
-    <Copy SourceFiles="@(_OmaXerahsPublishedFiles)"
-          DestinationFiles="@(_OmaXerahsPublishedFiles->'$(PublishDir)$(AssemblyName).app/Contents/MacOS/%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
     <Copy SourceFiles="@(_OmaXerahsPublishedFiles)"
           DestinationFiles="@(_OmaXerahsPublishedFiles->'$(PublishDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true"
-          Condition="!$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx'))" />
+          SkipUnchangedFiles="true" />
 
     <!-- .NET 10+ single-file publish embeds runtimeconfig and no longer writes the sidecar. -->
     <PropertyGroup>
@@ -247,23 +143,9 @@
   </Target>
 
   <Target Name="ValidatePublishedOmaXerahs" AfterTargets="PublishOmaXerahs">
-    <PropertyGroup>
-      <_OmaXerahsExecutableName>omaxerahs</_OmaXerahsExecutableName>
-      <_OmaXerahsExecutableName Condition="$(RuntimeIdentifier.StartsWith('win'))">omaxerahs.exe</_OmaXerahsExecutableName>
-      <_OmaXerahsExecutableName Condition="'$(RuntimeIdentifier)' == '' and '$(OS)' == 'Windows_NT'">omaxerahs.exe</_OmaXerahsExecutableName>
-      <_OmaXerahsRequireRuntimeConfig>true</_OmaXerahsRequireRuntimeConfig>
-      <_OmaXerahsRequireRuntimeConfig Condition="$(RuntimeIdentifier.StartsWith('win'))">false</_OmaXerahsRequireRuntimeConfig>
-      <_OmaXerahsRequireRuntimeConfig Condition="'$(RuntimeIdentifier)' == '' and '$(OS)' == 'Windows_NT'">false</_OmaXerahsRequireRuntimeConfig>
-    </PropertyGroup>
-
-    <!-- Validate at the final destination. On macOS: app bundle Contents/MacOS/. Otherwise: PublishDir root. -->
-    <Error Condition="$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(AssemblyName).app/Contents/MacOS/$(_OmaXerahsExecutableName)')"
-           Text="Missing omaxerahs executable at final destination: $(PublishDir)$(AssemblyName).app/Contents/MacOS/$(_OmaXerahsExecutableName)" />
-    <Error Condition="!$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(_OmaXerahsExecutableName)')"
-           Text="Missing omaxerahs executable at final destination: $(PublishDir)$(_OmaXerahsExecutableName)" />
-    <Error Condition="'$(_OmaXerahsRequireRuntimeConfig)' == 'true' and $([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)$(AssemblyName).app/Contents/MacOS/omaxerahs.runtimeconfig.json')"
-           Text="Missing omaxerahs runtimeconfig at final destination" />
-    <Error Condition="'$(_OmaXerahsRequireRuntimeConfig)' == 'true' and !$([System.String]::new('$(RuntimeIdentifier)').StartsWith('osx')) and !Exists('$(PublishDir)omaxerahs.runtimeconfig.json')"
+    <Error Condition="!Exists('$(PublishDir)omaxerahs')"
+           Text="Missing omaxerahs executable at final destination: $(PublishDir)omaxerahs" />
+    <Error Condition="!Exists('$(PublishDir)omaxerahs.runtimeconfig.json')"
            Text="Missing omaxerahs runtimeconfig at final destination" />
   </Target>
 

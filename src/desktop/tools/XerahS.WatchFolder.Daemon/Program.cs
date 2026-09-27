@@ -31,9 +31,6 @@ using XerahS.Core;
 using XerahS.Platform.Abstractions;
 using XerahS.WatchFolder.Daemon.Services;
 
-#if WINDOWS
-using System.ServiceProcess;
-#endif
 
 namespace XerahS.WatchFolder.Daemon;
 
@@ -52,13 +49,6 @@ internal static class Program
                 return 2;
             }
 
-#if WINDOWS
-            if (options.RunAsService && OperatingSystem.IsWindows())
-            {
-                ServiceBase.Run(new WindowsWatchFolderService(options));
-                return 0;
-            }
-#endif
 
             return RunConsoleAsync(options).GetAwaiter().GetResult();
         }
@@ -143,50 +133,4 @@ internal static class Program
         return Path.Combine(logsFolder, $"watchfolder-daemon-{DateTime.Now:yyyyMMdd}.log");
     }
 
-#if WINDOWS
-    private sealed class WindowsWatchFolderService : ServiceBase
-    {
-        private readonly DaemonOptions _options;
-        private CancellationTokenSource? _shutdownCts;
-        private Task<int>? _runTask;
-
-        public WindowsWatchFolderService(DaemonOptions options)
-        {
-            _options = options;
-            ServiceName = "XerahSWatchFolder";
-            CanStop = true;
-            CanShutdown = true;
-            AutoLog = true;
-        }
-
-        protected override void OnStart(string[] args)
-        {
-            _shutdownCts = new CancellationTokenSource();
-            _runTask = Task.Run(() => RunDaemonAsync(_options, _shutdownCts.Token));
-        }
-
-        protected override void OnStop()
-        {
-            if (_shutdownCts == null)
-            {
-                return;
-            }
-
-            _shutdownCts.Cancel();
-            try
-            {
-                _runTask?.GetAwaiter().GetResult();
-            }
-            catch
-            {
-            }
-        }
-
-        protected override void OnShutdown()
-        {
-            OnStop();
-            base.OnShutdown();
-        }
-    }
-#endif
 }

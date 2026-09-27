@@ -60,12 +60,6 @@ public partial class OverlayWindow
             return sourceColor;
         }
 
-#if WINDOWS
-        if (TrySampleLiveScreenColor(logicalPoint, out string? liveScreenColor))
-        {
-            return liveScreenColor;
-        }
-#endif
 
         return null;
     }
@@ -93,49 +87,6 @@ public partial class OverlayWindow
         return true;
     }
 
-#if WINDOWS
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetDC(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
-    [DllImport("gdi32.dll")]
-    private static extern uint GetPixel(IntPtr hdc, int nXPos, int nYPos);
-
-    private bool TrySampleLiveScreenColor(SKPoint logicalPoint, out string? color)
-    {
-        color = null;
-
-        int physicalScreenX = (int)Math.Round(_monitor.PhysicalBounds.X + logicalPoint.X * _monitor.ScaleFactor);
-        int physicalScreenY = (int)Math.Round(_monitor.PhysicalBounds.Y + logicalPoint.Y * _monitor.ScaleFactor);
-
-        IntPtr hdc = GetDC(IntPtr.Zero);
-        if (hdc == IntPtr.Zero)
-        {
-            return false;
-        }
-
-        try
-        {
-            uint pixel = GetPixel(hdc, physicalScreenX, physicalScreenY);
-            if (pixel == 0xFFFFFFFF)
-            {
-                return false;
-            }
-
-            byte r = (byte)(pixel & 0x000000FF);
-            byte g = (byte)((pixel & 0x0000FF00) >> 8);
-            byte b = (byte)((pixel & 0x00FF0000) >> 16);
-            color = $"#{r:X2}{g:X2}{b:X2}";
-            return true;
-        }
-        finally
-        {
-            _ = ReleaseDC(IntPtr.Zero, hdc);
-        }
-    }
-#endif
 
     private static bool TrySampleBitmapColor(SKBitmap? bitmap, SKPoint logicalPoint, out string? color)
     {

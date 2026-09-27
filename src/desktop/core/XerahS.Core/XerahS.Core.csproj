@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XerahS.Core</RootNamespace>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT' And '$(CrossCompile)' != 'true'">net10.0;net10.0-windows10.0.26100.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' Or '$(CrossCompile)' == 'true'">net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

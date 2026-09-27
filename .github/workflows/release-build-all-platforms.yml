@@ -1,4 +1,4 @@
-name: Release Build (All Platforms)
+name: Release Build (Linux)
 
 on:
   push:
@@ -51,142 +51,6 @@ jobs:
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "release_title=XerahS $VERSION" >> "$GITHUB_OUTPUT"
-
-  build-windows:
-    needs: validate-version
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Install Inno Setup
-        shell: pwsh
-        run: |
-          $isccPath = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
-          if (!(Test-Path $isccPath)) {
-            choco install innosetup --no-progress -y
-          }
-          if (!(Test-Path $isccPath)) {
-            throw "Inno Setup Compiler (ISCC.exe) was not found after installation."
-          }
-
-      - name: Install WiX Toolset
-        shell: pwsh
-        run: |
-          $wixVersion = "6.0.2"
-          $toolList = dotnet tool list --global 2>&1
-          if ($toolList | Select-String 'wix') {
-            dotnet tool update --global wix --version $wixVersion
-          } else {
-            dotnet tool install --global wix --version $wixVersion
-          }
-          # Ensure dotnet tools directory is on PATH for subsequent steps.
-          $dotnetTools = Join-Path $env:USERPROFILE ".dotnet\tools"
-          "$dotnetTools" | Out-File -Append -FilePath $env:GITHUB_PATH
-          $env:PATH = "$dotnetTools;$env:PATH"
-          wix --version
-          $extensions = wix extension list --global 2>&1
-          if (!($extensions | Select-String 'WixToolset.UI.wixext')) {
-            wix extension add --global "WixToolset.UI.wixext/$wixVersion"
-          }
-
-      - name: Test portable archive packaging
-        shell: pwsh
-        run: .\build\windows\test-package-portable.ps1
-
-      - name: Build Windows packages
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path build/logs | Out-Null
-          $logPath = "build/logs/windows-build.log"
-          Start-Transcript -Path $logPath -Force | Out-Null
-          try {
-            .\build\windows\package-windows.ps1
-          }
-          finally {
-            Stop-Transcript | Out-Null
-          }
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-release
-          if-no-files-found: error
-          path: |
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-x64.exe
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64.exe
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-x64.msi
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64.msi
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-x64-portable.zip
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64-portable.zip
-
-      - name: Upload Windows build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build-log
-          if-no-files-found: warn
-          path: build/logs/windows-build.log
-
-  build-macos:
-    needs: validate-version
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Build macOS packages
-        shell: bash
-        run: |
-          set -o pipefail
-          mkdir -p build/logs
-          chmod +x ./build/macos/package-mac.sh
-          ./build/macos/package-mac.sh 2>&1 | tee build/logs/macos-build.log
-
-      - name: Validate macOS archives
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="${{ needs.validate-version.outputs.version }}"
-          for ARCH in arm64 x64; do
-            ARCHIVE="dist/XerahS-${VERSION}-mac-${ARCH}.tar.gz"
-            ARCHIVE_LIST="$(mktemp)"
-            tar -tzf "$ARCHIVE" > "$ARCHIVE_LIST"
-            grep -q "XerahS.app/Contents/MacOS/xerahs-watchfolder-daemon" "$ARCHIVE_LIST"
-            grep -q "XerahS.app/Contents/MacOS/xerahs-watchfolder-daemon.runtimeconfig.json" "$ARCHIVE_LIST"
-            rm -f "$ARCHIVE_LIST"
-          done
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-release
-          if-no-files-found: error
-          path: |
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-mac-arm64.tar.gz
-            dist/XerahS-${{ needs.validate-version.outputs.version }}-mac-x64.tar.gz
-
-      - name: Upload macOS build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-build-log
-          if-no-files-found: warn
-          path: build/logs/macos-build.log
 
   build-linux:
     needs: validate-version
@@ -416,8 +280,6 @@ jobs:
     if: github.ref_type == 'tag'
     needs:
       - validate-version
-      - build-windows
-      - build-macos
       - build-linux
       - build-flatpak
     runs-on: ubuntu-24.04
@@ -449,14 +311,6 @@ jobs:
           prerelease: ${{ github.repository != 'KovaForge/XerahS' }}
           make_latest: ${{ github.repository == 'KovaForge/XerahS' }}
           files: |
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-x64.exe
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-x64.msi
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64.exe
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64.msi
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-x64-portable.zip
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-win-arm64-portable.zip
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-mac-arm64.tar.gz
-            release-assets/XerahS-${{ needs.validate-version.outputs.version }}-mac-x64.tar.gz
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.tar.gz
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.deb
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.rpm
@@ -466,62 +320,6 @@ jobs:
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-arm64.rpm
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-arm64.AppImage
             release-assets/com.xerahs.XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.flatpak
-          fail_on_unmatched_files: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  package-chocolatey:
-    if: github.ref_type == 'tag'
-    needs:
-      - validate-version
-      - release
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - name: Ensure Chocolatey CLI
-        shell: pwsh
-        run: |
-          if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
-            throw "Chocolatey CLI (choco) is required on the runner."
-          }
-
-          choco --version
-
-      - name: Sync and pack Chocolatey package
-        shell: pwsh
-        run: |
-          .\build\windows\chocolatey\Sync-ChocolateyPackage.ps1 `
-            -Version "${{ needs.validate-version.outputs.version }}" `
-            -Repository "${{ github.repository }}" `
-            -Pack `
-            -OutputDirectory "dist\chocolatey"
-
-      - name: Smoke test Chocolatey package
-        shell: pwsh
-        run: |
-          .\build\windows\chocolatey\Test-ChocolateyPackage.ps1 `
-            -Version "${{ needs.validate-version.outputs.version }}" `
-            -SourceDirectory "dist\chocolatey"
-
-      - name: Upload Chocolatey artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: chocolatey-package-${{ needs.validate-version.outputs.version }}
-          if-no-files-found: error
-          path: dist/chocolatey/xerahs.${{ needs.validate-version.outputs.version }}.nupkg
-
-      - name: Upload Chocolatey package to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.validate-version.outputs.version }}
-          # Keep Chocolatey upload aligned with the same repo release policy.
-          prerelease: ${{ github.repository != 'KovaForge/XerahS' }}
-          make_latest: ${{ github.repository == 'KovaForge/XerahS' }}
-          files: dist/chocolatey/xerahs.${{ needs.validate-version.outputs.version }}.nupkg
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -43,15 +43,8 @@ public static class DoctorCommand
 
     private static int RunLinuxInputDoctor(bool json)
     {
-#if LINUX
         var (report, exitCode) = XerahS.Platform.Linux.Input.Evdev.LinuxInputDiagnostics.BuildReport(json);
         Console.WriteLine(report);
         return exitCode;
-#else
-        Console.WriteLine(json
-            ? "{\"error\":\"--linux-input is only available on Linux builds\"}"
-            : "doctor --linux-input is only available on Linux builds.");
-        return 1;
-#endif
     }
 }

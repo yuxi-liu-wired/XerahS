@@ -57,13 +57,9 @@ public sealed class CoordinateTranslationService
     /// </summary>
     public PixelPoint GetPhysicalCursorPosition()
     {
-#if WINDOWS
-        return Platform.Windows.NativeMonitorService.GetPhysicalCursorPosition();
-#else
         // On non-Windows platforms, we need to use Avalonia's cursor position
         // and manually convert based on the screen the cursor is on
         return GetFallbackCursorPosition();
-#endif
     }
 
     private PixelPoint GetFallbackCursorPosition()

@@ -26,7 +26,6 @@
 using System.Diagnostics;
 using NUnit.Framework;
 using XerahS.Platform.Linux.Services;
-using XerahS.Platform.MacOS.Services;
 using XerahS.Services.Abstractions;
 
 namespace XerahS.Tests.Platform;
@@ -51,34 +50,6 @@ public class NotificationServiceProcessStartInfoTests
     }
 
     [Test]
-    public void MacOSNotificationService_CreateStartInfo_EscapesAppleScriptStringLiteral_AndIncludesSubtitleForTypedNotifications()
-    {
-        const string title = "Capture \"done\"";
-        const string message = "Saved to C:\\Shots\\latest\nReady for upload";
-
-        var startInfo = MacOSNotificationService.CreateStartInfo(title, message, NotificationType.Warning);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(startInfo.FileName, Is.EqualTo("osascript"));
-            Assert.That(startInfo.RedirectStandardOutput, Is.False);
-            Assert.That(startInfo.RedirectStandardError, Is.False);
-            Assert.That(startInfo.ArgumentList.Count, Is.EqualTo(2));
-            Assert.That(startInfo.ArgumentList[0], Is.EqualTo("-e"));
-            Assert.That(startInfo.ArgumentList[1], Is.EqualTo("display notification \"Saved to C:\\\\Shots\\\\latest\\nReady for upload\" with title \"Capture \\\"done\\\"\" subtitle \"Warning\""));
-        });
-    }
-
-    [Test]
-    public void MacOSNotificationService_CreateStartInfo_OmitsSubtitleForInfoNotifications()
-    {
-        var startInfo = MacOSNotificationService.CreateStartInfo("Capture complete", "Saved", NotificationType.Info);
-
-        Assert.That(startInfo.ArgumentList[1], Is.EqualTo("display notification \"Saved\" with title \"Capture complete\""));
-    }
-
-    [Test]
-    [Platform(Exclude = "Win")]
     public void LinuxNotificationService_WaitForSuccessfulExit_KillsTimedOutProcess()
     {
         using var process = Process.Start(new ProcessStartInfo
@@ -91,28 +62,6 @@ public class NotificationServiceProcessStartInfoTests
         Assert.That(process, Is.Not.Null);
 
         var result = LinuxNotificationService.WaitForSuccessfulExit(process!, 50);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(result, Is.False);
-            Assert.That(process!.HasExited, Is.True);
-        });
-    }
-
-    [Test]
-    [Platform(Exclude = "Win")]
-    public void MacOSNotificationService_WaitForSuccessfulExit_KillsTimedOutProcess()
-    {
-        using var process = Process.Start(new ProcessStartInfo
-        {
-            FileName = "/bin/sh",
-            UseShellExecute = false,
-            ArgumentList = { "-c", "sleep 5" }
-        });
-
-        Assert.That(process, Is.Not.Null);
-
-        var result = MacOSNotificationService.WaitForSuccessfulExit(process!, 50);
 
         Assert.Multiple(() =>
         {

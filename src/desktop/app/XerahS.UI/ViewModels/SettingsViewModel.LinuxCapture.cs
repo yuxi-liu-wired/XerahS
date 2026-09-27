@@ -115,13 +115,8 @@ namespace XerahS.UI.ViewModels
                 return;
             }
 
-#if LINUX
             LinuxClipboardCliWarningText = XerahS.Platform.Linux.Services.LinuxClipboardCapabilities.UserFacingWarning;
             ShowLinuxClipboardCliWarning = !XerahS.Platform.Linux.Services.LinuxClipboardCapabilities.CliClipboardHealthy;
-#else
-            ShowLinuxClipboardCliWarning = false;
-            LinuxClipboardCliWarningText = null;
-#endif
         }
 
         private static string GetPreferenceDescription(LinuxInteractiveRegionSelectorPreference preference)

@@ -259,9 +259,6 @@ public sealed class WindowDetectionService
 
     internal static IReadOnlyList<WindowInfo> EnumerateVisibleWindows(bool includeControls = true)
     {
-#if WINDOWS
-        return FilterExcludedWindows(Platform.Windows.NativeWindowService.EnumerateVisibleWindows(includeControls));
-#else
         _ = includeControls;
         try
         {
@@ -271,7 +268,6 @@ public sealed class WindowDetectionService
         {
             return [];
         }
-#endif
     }
 
     internal static IReadOnlyList<WindowInfo> ConvertPlatformWindows(IEnumerable<PlatformWindowInfo> windows)

@@ -179,88 +179,17 @@ namespace XerahS.Bootstrap
         /// </summary>
         private static void InitializePlatformServices(IScreenCaptureService? customCaptureService = null)
         {
-#if WINDOWS
-            if (OperatingSystem.IsWindows())
-            {
-                InitializeWindowsPlatform(customCaptureService);
-                return;
-            }
-#elif MACOS
-            if (OperatingSystem.IsMacOS())
-            {
-                InitializeMacOSPlatform(customCaptureService);
-                return;
-            }
-#elif LINUX
             if (OperatingSystem.IsLinux())
             {
                 InitializeLinuxPlatform();
                 return;
             }
-#endif
             // Fallback warning
             DebugHelper.WriteLine("Warning: Platform not fully supported, services may not be fully functional.");
         }
 
-#if WINDOWS
-        /// <summary>
-        /// Initialize Windows platform services.
-        /// </summary>
-        private static void InitializeWindowsPlatform(IScreenCaptureService? customCaptureService)
-        {
-            // Create Windows platform services
-            var screenService = new Platform.Windows.WindowsScreenService();
 
-            // Create Windows capture service if not provided
-            IScreenCaptureService captureService;
 
-            if (customCaptureService != null)
-            {
-                captureService = customCaptureService;
-            }
-            else
-            {
-                // Choose between modern (Direct3D11/DXGI) or legacy (GDI+) capture
-                if (Platform.Windows.WindowsModernCaptureService.IsSupported)
-                {
-                    DebugHelper.WriteLine("Windows: Using WindowsModernCaptureService (Direct3D11/DXGI)");
-                    captureService = new Platform.Windows.WindowsModernCaptureService(screenService);
-                }
-                else
-                {
-                    DebugHelper.WriteLine("Windows: Using WindowsScreenCaptureService (GDI+)");
-                    captureService = new Platform.Windows.WindowsScreenCaptureService(screenService);
-                }
-            }
-
-            // Initialize Windows platform with capture service
-            Platform.Windows.WindowsPlatform.Initialize(captureService);
-        }
-#endif
-
-#if MACOS
-        /// <summary>
-        /// Initialize macOS platform services.
-        /// </summary>
-        private static void InitializeMacOSPlatform(IScreenCaptureService? customCaptureService)
-        {
-            IScreenCaptureService captureService;
-
-            if (customCaptureService != null)
-            {
-                captureService = customCaptureService;
-            }
-            else
-            {
-                DebugHelper.WriteLine("macOS: Using MacOSScreenCaptureKitService (native)");
-                captureService = new Platform.MacOS.MacOSScreenCaptureKitService();
-            }
-
-            Platform.MacOS.MacOSPlatform.Initialize(captureService);
-        }
-#endif
-
-#if LINUX
         /// <summary>
         /// Initialize Linux platform services.
         /// </summary>
@@ -270,7 +199,6 @@ namespace XerahS.Bootstrap
             DebugHelper.WriteLine($"Linux: UseWaylandPortalServices={useWaylandPortalServices}");
             Platform.Linux.LinuxPlatform.Initialize(useWaylandPortalServices: useWaylandPortalServices);
         }
-#endif
 
         private static bool ResolveLinuxWaylandPortalServicesSetting()
         {
@@ -298,25 +226,11 @@ namespace XerahS.Bootstrap
 
                 // InitializeRecording performs CPU-bound work (COM initialization, DirectX setup)
                 // so Task.Run is used to avoid blocking the caller's synchronization context
-#if WINDOWS
-                if (OperatingSystem.IsWindows())
-                {
-                    XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "BOOTSTRAP", "Platform is Windows, calling WindowsPlatform.InitializeRecording()");
-                    await Task.Run(() => Platform.Windows.WindowsPlatform.InitializeRecording());
-                }
-#elif MACOS
-                if (OperatingSystem.IsMacOS())
-                {
-                    XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "BOOTSTRAP", "Platform is macOS, calling MacOSPlatform.InitializeRecording()");
-                    await Task.Run(() => Platform.MacOS.MacOSPlatform.InitializeRecording());
-                }
-#elif LINUX
                 if (OperatingSystem.IsLinux())
                 {
                     XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "BOOTSTRAP", "Platform is Linux, calling LinuxPlatform.InitializeRecording()");
                     await Task.Run(() => Platform.Linux.LinuxPlatform.InitializeRecording());
                 }
-#endif
 
                 XerahS.Common.TroubleshootingHelper.Log("ScreenRecorder", "BOOTSTRAP", "Recording initialization completed successfully");
                 DebugHelper.WriteLine("Recording initialization completed successfully");

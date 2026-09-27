@@ -649,19 +649,6 @@ namespace XerahS.CLI.Commands
 
         private static IScreenSampler? TryGetScreenSampler()
         {
-#if WINDOWS
-            try
-            {
-                if (PlatformServices.PlatformInfo.IsWindows)
-                {
-                    return new XerahS.Platform.Windows.WindowsScreenSampler();
-                }
-            }
-            catch
-            {
-                // Ignore errors
-            }
-#endif
             return null;
         }
 

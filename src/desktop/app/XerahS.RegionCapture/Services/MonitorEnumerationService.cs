@@ -43,11 +43,7 @@ public static class MonitorEnumerationService
     /// </summary>
     public static IReadOnlyList<MonitorInfo> GetAllMonitors()
     {
-#if WINDOWS
-        return GetWindowsMonitors();
-#else
         return GetAvaloniaMonitors();
-#endif
     }
 
     private static IReadOnlyList<MonitorInfo> GetAvaloniaMonitors()
@@ -216,10 +212,4 @@ public static class MonitorEnumerationService
         return mainWindow.TryGetPlatformHandle()?.HandleDescriptor == "WAYLAND";
     }
 
-#if WINDOWS
-    private static IReadOnlyList<MonitorInfo> GetWindowsMonitors()
-    {
-        return Platform.Windows.NativeMonitorService.EnumerateMonitors();
-    }
-#endif
 }

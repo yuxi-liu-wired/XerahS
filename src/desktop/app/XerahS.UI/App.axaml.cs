@@ -38,9 +38,6 @@ using XerahS.Common;
 using XerahS.Core;
 using XerahS.Media.Encoders;
 using XerahS.Platform.Abstractions;
-#if WINDOWS
-using XerahS.Platform.Windows;
-#endif
 using SkiaSharp;
 using XerahS.UI.Services;
 using XerahS.UI.ViewModels;
@@ -256,14 +253,9 @@ public partial class App : Application
             XerahS.Platform.Abstractions.IClipboardService runtimeClipboardService;
 
             // Use native Win32 clipboard on Windows so image formats are published explicitly.
-#if WINDOWS
-            runtimeClipboardService = new WindowsClipboardService();
-            PlatformServices.ClipboardMonitor = new WindowsClipboardMonitorService(runtimeClipboardService);
-#else
             runtimeClipboardService = new Services.AvaloniaClipboardService(
                 desktop.MainWindow.Clipboard!,
                 desktop.MainWindow.StorageProvider);
-#endif
 
             PlatformServices.Clipboard = new ClipboardMonitorAwareClipboardService(
                 runtimeClipboardService,

@@ -15,7 +15,4 @@
     <!-- Workaround for Fedora .NET package missing prune data -->
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <CrossCompile>true</CrossCompile>
-  </PropertyGroup>
 </Project>

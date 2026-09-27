@@ -81,25 +81,5 @@ namespace XerahS.Uploaders
             return Upload(stream, fileName);
         }
 
-#if WINDOWS
-        /// <summary>
-        /// Uploads an image from a System.Drawing.Image. Windows-only, deprecated.
-        /// Use UploadImage(SKBitmap, ...) instead.
-        /// </summary>
-        [Obsolete("Use UploadImage(SKBitmap, string) for cross-platform support")]
-        [SupportedOSPlatform("windows")]
-        public UploadResult UploadImage(System.Drawing.Image image, string fileName)
-        {
-            if (!OperatingSystem.IsWindows())
-            {
-                throw new PlatformNotSupportedException("System.Drawing image upload is only supported on Windows.");
-            }
-
-            using MemoryStream stream = new MemoryStream();
-            image.Save(stream, image.RawFormat);
-            stream.Position = 0;
-            return Upload(stream, fileName);
-        }
-#endif
     }
 }

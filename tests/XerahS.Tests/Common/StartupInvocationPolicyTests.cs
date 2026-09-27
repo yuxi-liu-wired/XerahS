@@ -25,9 +25,6 @@
 
 using NUnit.Framework;
 using XerahS.Common;
-#if WINDOWS
-using XerahS.Platform.Windows.Services;
-#endif
 
 namespace XerahS.Tests.Common;
 
@@ -55,23 +52,4 @@ public class StartupInvocationPolicyTests
             Is.False);
     }
 
-    #if WINDOWS
-    [Test]
-    public void WindowsStartupCommand_UsesPassiveStartupMarker()
-    {
-        const string executablePath = @"C:\Program Files\XerahS\XerahS.exe";
-
-        Assert.That(
-            WindowsStartupService.GetStartupCommand(executablePath),
-            Is.EqualTo("\"C:\\Program Files\\XerahS\\XerahS.exe\" -silent"));
-    }
-
-    [TestCase(@"C:\Program Files\XerahS\XerahS.exe", true)]
-    [TestCase(@"C:\test\testhost.exe", false)]
-    [TestCase(null, false)]
-    public void LegacyMigration_OnlyRunsInsideXerahSProcess(string? processPath, bool expected)
-    {
-        Assert.That(WindowsStartupService.IsXerahSProcess(processPath), Is.EqualTo(expected));
-    }
-#endif
 }

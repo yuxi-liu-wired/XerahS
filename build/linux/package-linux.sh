@@ -70,7 +70,6 @@ restore_project_assets_for_publish() {
         -p:DefineConstants=LINUX \
         -p:SelfContained=true \
         -p:PublishSingleFile=true \
-        -p:EnableWindowsTargeting=true \
         --disable-build-servers \
         -p:nodeReuse=false \
         -p:UseSharedCompilation=false \
@@ -90,7 +89,6 @@ restore_project_assets_for_runtime() {
         -p:RuntimeIdentifier="$runtime_identifier" \
         -p:RuntimeIdentifiers="$runtime_identifier" \
         -p:DefineConstants=LINUX \
-        -p:EnableWindowsTargeting=true \
         --disable-build-servers \
         -p:nodeReuse=false \
         -p:UseSharedCompilation=false \
@@ -183,8 +181,7 @@ publish_single_plugin() {
             -o "$plugin_output" \
             --no-self-contained \
             -p:PublishSingleFile=false \
-            -p:CopyOutputSymbolsToPublishDirectory=false \
-            -p:EnableWindowsTargeting=true > /dev/null
+            -p:CopyOutputSymbolsToPublishDirectory=false > /dev/null
 
         # Ensure plugin.json exists for runtime discovery.
         if [ ! -f "$plugin_output/plugin.json" ] && [ -f "$plugin_dir/plugin.json" ]; then
@@ -304,7 +301,6 @@ for ARCH in "${ARCHITECTURES[@]}"; do
         --self-contained true \
         -p:IncludeNativeLibrariesForSelfExtract=true \
         -p:CopyOutputSymbolsToPublishDirectory=false \
-        -p:EnableWindowsTargeting=true \
         -p:SkipBundlePlugins=true
 
     validate_daemon_bundle "$PUBLISH_DIR"

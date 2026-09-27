@@ -42,9 +42,9 @@ public class UpdateService : IDisposable
 {
     private static UpdateService? _instance;
     private static readonly object _lock = new();
-    private const string DefaultReleaseOwner = "ShareX";
-    private const string DefaultPreReleaseOwner = "KovaForge";
-    private const string DefaultRepo = "XerahS";
+    // Updates come from this fork's releases only; the update channel decides whether pre-releases count.
+    private const string ForkOwner = "yuxi-liu-wired";
+    private const string ForkRepo = "XerahS";
 
     public static UpdateService Instance
     {
@@ -168,53 +168,7 @@ public class UpdateService : IDisposable
 
     public static IReadOnlyList<(string Owner, string Repo)> ResolveUpdateRepositories(ApplicationConfig settings)
     {
-        if (settings.UpdateChannel != UpdateChannel.PreRelease)
-        {
-            return [(DefaultReleaseOwner, DefaultRepo)];
-        }
-
-        return settings.PreReleaseUpdateSource switch
-        {
-            PreReleaseUpdateSource.ShareX => [(DefaultReleaseOwner, DefaultRepo)],
-            PreReleaseUpdateSource.Custom => [ResolveCustomPreReleaseRepository(settings.CustomPreReleaseUpdateSource)],
-            PreReleaseUpdateSource.Any =>
-            [
-                (DefaultReleaseOwner, DefaultRepo),
-                (DefaultPreReleaseOwner, DefaultRepo)
-            ],
-            _ => [(DefaultPreReleaseOwner, DefaultRepo)]
-        };
-    }
-
-    public static (string Owner, string Repo) ResolveCustomPreReleaseRepository(string? source)
-    {
-        string normalized = NormalizeCustomPreReleaseSource(source);
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return (DefaultPreReleaseOwner, DefaultRepo);
-        }
-
-        string[] parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return parts.Length >= 2
-            ? (parts[0], parts[1])
-            : (parts[0], DefaultRepo);
-    }
-
-    private static string NormalizeCustomPreReleaseSource(string? source)
-    {
-        string normalized = source?.Trim() ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            return string.Empty;
-        }
-
-        if (Uri.TryCreate(normalized, UriKind.Absolute, out Uri? uri) &&
-            uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
-        {
-            normalized = uri.AbsolutePath;
-        }
-
-        return normalized.Trim().Trim('/');
+        return [(ForkOwner, ForkRepo)];
     }
 
     /// <summary>

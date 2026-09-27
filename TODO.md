@@ -52,7 +52,8 @@ XerahS puts an Avalonia `Bitmap` on the X11 clipboard and disposes it while it s
 
 - [x] Produce a linux-x64 AppImage or self-contained publish folder from the fork: `dist/XerahS-0.28.35-linux-x64.AppImage`.
 - [ ] Rebase on `upstream/develop` (the upstream default branch) when upstream moves. The fork is Linux only (see `FORK.md`), so expect conflicts wherever upstream edits the deleted Windows, macOS, or mobile files or the Windows branches of shared code.
-- [ ] The update checker (`GitHubUpdateChecker`) looks at `ShareX/XerahS` releases, which lack the fork's changes. Point it at the fork's releases or turn update checks off.
+- [x] The update checker reads this fork's releases (see `FORK.md`).
+- [ ] Publish a first release on the fork (push a `vX.Y.Z` tag matching `Directory.Build.props`); until then an update check finds nothing.
 
 ## Upstream pull requests
 

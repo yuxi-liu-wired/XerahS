@@ -307,9 +307,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ needs.validate-version.outputs.release_title }}
-          # ShareX/XerahS: always pre-release. KovaForge/XerahS: full release (latest).
-          prerelease: ${{ github.repository != 'KovaForge/XerahS' }}
-          make_latest: ${{ github.repository == 'KovaForge/XerahS' }}
+          # The fork's in-app updater reads these releases; publish them as full releases.
+          prerelease: false
+          make_latest: true
           files: |
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.tar.gz
             release-assets/XerahS-${{ needs.validate-version.outputs.version }}-linux-x64.deb

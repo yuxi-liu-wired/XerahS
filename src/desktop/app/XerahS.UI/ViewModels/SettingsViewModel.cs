@@ -129,14 +129,6 @@ namespace XerahS.UI.ViewModels
         public UpdateChannel[] UpdateChannels => (UpdateChannel[])Enum.GetValues(typeof(UpdateChannel));
 
         [ObservableProperty]
-        private PreReleaseUpdateSource _preReleaseUpdateSource;
-
-        public PreReleaseUpdateSource[] PreReleaseUpdateSources => (PreReleaseUpdateSource[])Enum.GetValues(typeof(PreReleaseUpdateSource));
-
-        [ObservableProperty]
-        private string _customPreReleaseUpdateSource = string.Empty;
-
-        [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ManualUpdateCommand))]
         private bool _isManualUpdateInProgress;
 
@@ -145,26 +137,6 @@ namespace XerahS.UI.ViewModels
 
         public string ManualUpdateButtonText => IsManualUpdateInProgress ? "Checking..." : "Update Now";
         public bool CanTriggerManualUpdate => !IsManualUpdateInProgress;
-
-        public bool ShowPreReleaseSourceSettings => UpdateChannel == UpdateChannel.PreRelease;
-        public bool ShowCustomPreReleaseSource => ShowPreReleaseSourceSettings && PreReleaseUpdateSource == PreReleaseUpdateSource.Custom;
-
-        partial void OnAutoCheckUpdateChanged(bool value)
-        {
-            OnPropertyChanged(nameof(ShowPreReleaseSourceSettings));
-            OnPropertyChanged(nameof(ShowCustomPreReleaseSource));
-        }
-
-        partial void OnUpdateChannelChanged(UpdateChannel value)
-        {
-            OnPropertyChanged(nameof(ShowPreReleaseSourceSettings));
-            OnPropertyChanged(nameof(ShowCustomPreReleaseSource));
-        }
-
-        partial void OnPreReleaseUpdateSourceChanged(PreReleaseUpdateSource value)
-        {
-            OnPropertyChanged(nameof(ShowCustomPreReleaseSource));
-        }
 
         partial void OnIsManualUpdateInProgressChanged(bool value)
         {
@@ -280,8 +252,6 @@ namespace XerahS.UI.ViewModels
             DisableToastNotification = settings.DisableToastNotification;
             AutoCheckUpdate = settings.AutoCheckUpdate;
             UpdateChannel = settings.UpdateChannel;
-            PreReleaseUpdateSource = settings.PreReleaseUpdateSource;
-            CustomPreReleaseUpdateSource = settings.CustomPreReleaseUpdateSource;
             // Migrate legacy Dev channel to PreRelease (Dev was removed)
             if ((int)UpdateChannel >= 2)
             {
@@ -397,8 +367,6 @@ namespace XerahS.UI.ViewModels
             settings.DisableToastNotification = DisableToastNotification;
             settings.AutoCheckUpdate = AutoCheckUpdate;
             settings.UpdateChannel = UpdateChannel;
-            settings.PreReleaseUpdateSource = PreReleaseUpdateSource;
-            settings.CustomPreReleaseUpdateSource = CustomPreReleaseUpdateSource?.Trim() ?? string.Empty;
 
             // Proxy Settings
             settings.ProxySettings.ProxyMethod = ProxyMethod;

@@ -312,8 +312,6 @@ namespace XerahS.UI.ViewModels
             RefreshLinuxClipboardDiagnostics();
             LinuxRegionSelectorPreference = LinuxRegionSelectorPreferenceSupport.NormalizeForCurrentSession(
                 taskSettings.CaptureSettings.LinuxRegionSelectorPreference);
-            MacOSRegionSelectorPreference = taskSettings.CaptureSettings.MacOSRegionSelectorPreference;
-            MacOSPlayCaptureSound = taskSettings.CaptureSettings.MacOSPlayCaptureSound;
             LinuxRecordingBackendPreference = ResolveLinuxRecordingBackendPreference(taskSettings.CaptureSettings);
 
             // Task Settings - File Naming Defaults
@@ -421,8 +419,6 @@ namespace XerahS.UI.ViewModels
             taskSettings.CaptureSettings.CaptureClientArea = CaptureClientArea;
             taskSettings.CaptureSettings.UseModernCapture = UseModernCapture;
             taskSettings.CaptureSettings.LinuxRegionSelectorPreference = LinuxRegionSelectorPreference;
-            taskSettings.CaptureSettings.MacOSRegionSelectorPreference = MacOSRegionSelectorPreference;
-            taskSettings.CaptureSettings.MacOSPlayCaptureSound = MacOSPlayCaptureSound;
             taskSettings.CaptureSettings.LinuxRecordingBackendPreference = LinuxRecordingBackendPreference;
 
             taskSettings.UploadSettings.NameFormatPattern = NameFormatPattern;
@@ -523,8 +519,6 @@ namespace XerahS.UI.ViewModels
             DisableToastNotification = false;
             SelectedTheme = 0;
             LinuxRegionSelectorPreference = LinuxInteractiveRegionSelectorPreference.Automatic;
-            MacOSRegionSelectorPreference = MacOSInteractiveRegionSelectorPreference.Automatic;
-            MacOSPlayCaptureSound = true;
             LinuxRecordingBackendPreference = XerahS.RegionCapture.ScreenRecording.LinuxRecordingBackendPreference.Automatic;
         }
 

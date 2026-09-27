@@ -174,7 +174,6 @@ internal sealed class McpSettingsWorkflowService
             ["default_capture_mode"] = InferCaptureMode(captureSettings.Job),
             ["use_modern_capture"] = captureSettings.CaptureSettings.UseModernCapture,
             ["show_cursor"] = captureSettings.CaptureSettings.ShowCursor,
-            ["macos_play_capture_sound"] = captureSettings.CaptureSettings.MacOSPlayCaptureSound,
             ["capture_delay_seconds"] = captureSettings.CaptureSettings.ScreenshotDelay,
             ["capture_transparent"] = captureSettings.CaptureSettings.CaptureTransparent,
             ["capture_shadow"] = captureSettings.CaptureSettings.CaptureShadow,

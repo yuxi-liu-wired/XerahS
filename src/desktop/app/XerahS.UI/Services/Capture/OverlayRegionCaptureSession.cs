@@ -74,10 +74,7 @@ internal static class OverlayRegionCaptureSession
                         {
                             ShowCursor = false,
                             UseModernCapture = options?.UseModernCapture ?? true,
-                            LinuxRegionSelectorPreference = LinuxCaptureOptionsResolver.GetLinuxRegionSelectorPreference(options),
-                            MacOSRegionSelectorPreference = options?.MacOSRegionSelectorPreference ??
-                                MacOSInteractiveRegionSelectorPreference.Automatic,
-                            MacOSPlayCaptureSound = false
+                            LinuxRegionSelectorPreference = LinuxCaptureOptionsResolver.GetLinuxRegionSelectorPreference(options)
                         });
                     }
                     catch

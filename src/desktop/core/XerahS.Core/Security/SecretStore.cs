@@ -25,7 +25,6 @@
 
 using Newtonsoft.Json;
 using System.Diagnostics;
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using XerahS.Common;
@@ -71,49 +70,13 @@ public sealed class SecretStore : ISecretStore, ISecretStoreInfo
     {
         const string serviceName = "XerahS";
 
-        if (OperatingSystem.IsWindows())
+        if (LinuxLibsecretSecretStore.IsAvailable())
         {
             return BackendSelection.Create(
-                new DpapiFileSecretStore(filePath),
-                "Windows DPAPI file store",
-                "DPAPI-protected SecretsStore.json",
+                new LinuxLibsecretSecretStore(serviceName),
+                "Linux libsecret",
+                $"Stored via secret-tool service \"{serviceName}\"",
                 isFallback: false);
-        }
-
-        if (OperatingSystem.IsMacOS())
-        {
-            if (MacOSKeychainSecretStore.IsAvailable())
-            {
-                return BackendSelection.Create(
-                    new MacOSKeychainSecretStore(serviceName),
-                    "macOS Keychain",
-                    $"Stored in Keychain service \"{serviceName}\"",
-                    isFallback: false);
-            }
-
-            return BackendSelection.Create(
-                new AesFileSecretStore(filePath, GetKeyPath(filePath)),
-                "AES file store (fallback)",
-                "AES-GCM SecretsStore.json + SecretsStore.key",
-                isFallback: true);
-        }
-
-        if (OperatingSystem.IsLinux())
-        {
-            if (LinuxLibsecretSecretStore.IsAvailable())
-            {
-                return BackendSelection.Create(
-                    new LinuxLibsecretSecretStore(serviceName),
-                    "Linux libsecret",
-                    $"Stored via secret-tool service \"{serviceName}\"",
-                    isFallback: false);
-            }
-
-            return BackendSelection.Create(
-                new AesFileSecretStore(filePath, GetKeyPath(filePath)),
-                "AES file store (fallback)",
-                "AES-GCM SecretsStore.json + SecretsStore.key",
-                isFallback: true);
         }
 
         return BackendSelection.Create(
@@ -127,132 +90,6 @@ public sealed class SecretStore : ISecretStore, ISecretStoreInfo
     {
         var directory = Path.GetDirectoryName(filePath) ?? ".";
         return Path.Combine(directory, "SecretsStore.key");
-    }
-
-    [SupportedOSPlatform("windows")]
-    private sealed class DpapiFileSecretStore : ISecretStore
-    {
-        private readonly object _lock = new();
-        private readonly string _filePath;
-        private readonly Dictionary<string, string> _secrets = new(StringComparer.OrdinalIgnoreCase);
-        private bool _loaded;
-
-        public DpapiFileSecretStore(string filePath)
-        {
-            _filePath = filePath;
-        }
-
-        public string? GetSecret(string providerId, string secretKey, string name)
-        {
-            var key = BuildKey(providerId, secretKey, name);
-            lock (_lock)
-            {
-                EnsureLoaded();
-                if (!_secrets.TryGetValue(key, out var encrypted))
-                {
-                    return null;
-                }
-
-                try
-                {
-                    return DPAPI.Decrypt(encrypted);
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.WriteException(ex, $"SecretStore failed to decrypt secret: {key}");
-                    return null;
-                }
-            }
-        }
-
-        public void SetSecret(string providerId, string secretKey, string name, string value)
-        {
-            var key = BuildKey(providerId, secretKey, name);
-            lock (_lock)
-            {
-                EnsureLoaded();
-                _secrets[key] = DPAPI.Encrypt(value);
-                Save();
-            }
-        }
-
-        public void DeleteSecret(string providerId, string secretKey, string name)
-        {
-            var key = BuildKey(providerId, secretKey, name);
-            lock (_lock)
-            {
-                EnsureLoaded();
-                if (_secrets.Remove(key))
-                {
-                    Save();
-                }
-            }
-        }
-
-        public bool HasSecret(string providerId, string secretKey, string name)
-        {
-            var key = BuildKey(providerId, secretKey, name);
-            lock (_lock)
-            {
-                EnsureLoaded();
-                return _secrets.ContainsKey(key);
-            }
-        }
-
-        private void EnsureLoaded()
-        {
-            if (_loaded)
-            {
-                return;
-            }
-
-            if (File.Exists(_filePath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(_filePath);
-                    var model = JsonConvert.DeserializeObject<SecretStoreModel>(json);
-                    if (model?.Secrets != null)
-                    {
-                        foreach (var pair in model.Secrets)
-                        {
-                            _secrets[pair.Key] = pair.Value;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.WriteException(ex, "SecretStore failed to load secrets file.");
-                }
-            }
-
-            _loaded = true;
-        }
-
-        private void Save()
-        {
-            try
-            {
-                var directory = Path.GetDirectoryName(_filePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                var model = new SecretStoreModel
-                {
-                    Version = 1,
-                    Secrets = new Dictionary<string, string>(_secrets)
-                };
-
-                var json = JsonConvert.SerializeObject(model, Formatting.Indented);
-                File.WriteAllText(_filePath, json);
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.WriteException(ex, "SecretStore failed to save secrets file.");
-            }
-        }
     }
 
     private sealed class AesFileSecretStore : ISecretStore
@@ -430,86 +267,6 @@ public sealed class SecretStore : ISecretStore, ISecretStoreInfo
             {
                 DebugHelper.WriteException(ex, "SecretStore failed to load or create AES key.");
                 return RandomNumberGenerator.GetBytes(32);
-            }
-        }
-    }
-
-    private sealed class MacOSKeychainSecretStore : ISecretStore
-    {
-        private readonly string _service;
-        private readonly string _securityPath;
-        private readonly string _keychainArgument;
-
-        public MacOSKeychainSecretStore(string service)
-        {
-            _service = service;
-            _securityPath = File.Exists("/usr/bin/security") ? "/usr/bin/security" : "security";
-            _keychainArgument = BuildKeychainArgument();
-        }
-
-        public static bool IsAvailable()
-        {
-            return File.Exists("/usr/bin/security") || CommandExists("security", "-h");
-        }
-
-        public string? GetSecret(string providerId, string secretKey, string name)
-        {
-            var account = BuildKey(providerId, secretKey, name);
-            var result = RunCommand(_securityPath, $"find-generic-password -a \"{account}\" -s \"{_service}\" -w{_keychainArgument}");
-            return string.IsNullOrWhiteSpace(result) ? null : result.Trim();
-        }
-
-        public void SetSecret(string providerId, string secretKey, string name, string value)
-        {
-            var account = BuildKey(providerId, secretKey, name);
-            RunCommand(_securityPath, $"add-generic-password -a \"{account}\" -s \"{_service}\" -w \"{value}\" -U{_keychainArgument}");
-        }
-
-        public void DeleteSecret(string providerId, string secretKey, string name)
-        {
-            var account = BuildKey(providerId, secretKey, name);
-            RunCommand(_securityPath, $"delete-generic-password -a \"{account}\" -s \"{_service}\"{_keychainArgument}");
-        }
-
-        public bool HasSecret(string providerId, string secretKey, string name)
-        {
-            var account = BuildKey(providerId, secretKey, name);
-            var result = RunCommand(_securityPath, $"find-generic-password -a \"{account}\" -s \"{_service}\" -w{_keychainArgument}");
-            return !string.IsNullOrWhiteSpace(result);
-        }
-
-        private static string BuildKeychainArgument()
-        {
-            foreach (string home in GetCandidateHomeDirectories())
-            {
-                string loginKeychain = Path.Combine(home, "Library", "Keychains", "login.keychain-db");
-                if (File.Exists(loginKeychain))
-                {
-                    return $" \"{loginKeychain}\"";
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private static IEnumerable<string> GetCandidateHomeDirectories()
-        {
-            string specialFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            if (!string.IsNullOrWhiteSpace(specialFolder))
-            {
-                yield return specialFolder;
-            }
-
-            string? home = Environment.GetEnvironmentVariable("HOME");
-            if (!string.IsNullOrWhiteSpace(home))
-            {
-                yield return home;
-            }
-
-            string userName = Environment.UserName;
-            if (!string.IsNullOrWhiteSpace(userName) && OperatingSystem.IsMacOS())
-            {
-                yield return Path.Combine("/Users", userName);
             }
         }
     }

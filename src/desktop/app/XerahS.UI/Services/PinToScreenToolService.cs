@@ -264,8 +264,6 @@ public static class PinToScreenToolService
         {
             UseModernCapture = captureSettings.UseModernCapture,
             LinuxRegionSelectorPreference = captureSettings.LinuxRegionSelectorPreference,
-            MacOSRegionSelectorPreference = captureSettings.MacOSRegionSelectorPreference,
-            MacOSPlayCaptureSound = captureSettings.MacOSPlayCaptureSound,
             ShowCursor = captureSettings.ShowCursor,
             CaptureTransparent = captureSettings.CaptureTransparent,
             CaptureShadow = captureSettings.CaptureShadow,

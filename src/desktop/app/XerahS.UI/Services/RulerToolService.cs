@@ -56,8 +56,6 @@ public static class RulerToolService
         var captureOptions = new CaptureOptions
         {
             UseModernCapture = captureSettings.UseModernCapture,
-            MacOSRegionSelectorPreference = captureSettings.MacOSRegionSelectorPreference,
-            MacOSPlayCaptureSound = captureSettings.MacOSPlayCaptureSound,
             ShowCursor = false,
             CaptureTransparent = captureSettings.CaptureTransparent,
             CaptureShadow = captureSettings.CaptureShadow,
@@ -114,15 +112,8 @@ public static class RulerToolService
 
     private static bool IsRulerSupported()
     {
-        try
-        {
-            return PlatformServices.IsInitialized && PlatformServices.PlatformInfo.IsWindows;
-        }
-        catch (Exception ex)
-        {
-            DebugHelper.WriteException(ex, "Failed to check ruler platform support");
-            return false;
-        }
+        // The ruler overlay was only enabled on Windows; it is not supported on Linux yet.
+        return false;
     }
 
     private static void NotifyRulerUnavailable()

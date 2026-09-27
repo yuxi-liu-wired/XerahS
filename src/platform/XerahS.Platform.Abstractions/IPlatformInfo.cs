@@ -46,29 +46,9 @@ namespace XerahS.Platform.Abstractions
         string Architecture { get; }
 
         /// <summary>
-        /// Checks if running on Windows
-        /// </summary>
-        bool IsWindows { get; }
-
-        /// <summary>
         /// Checks if running on Linux
         /// </summary>
         bool IsLinux { get; }
-
-        /// <summary>
-        /// Checks if running on macOS
-        /// </summary>
-        bool IsMacOS { get; }
-
-        /// <summary>
-        /// Checks if running on Windows 10 or greater
-        /// </summary>
-        bool IsWindows10OrGreater { get; }
-
-        /// <summary>
-        /// Checks if running on Windows 11 or greater
-        /// </summary>
-        bool IsWindows11OrGreater { get; }
 
         /// <summary>
         /// Gets the .NET runtime version
@@ -87,11 +67,6 @@ namespace XerahS.Platform.Abstractions
     public enum PlatformType
     {
         Unknown,
-        Windows,
-        Linux,
-        MacOS,
-        FreeBSD,
-        Android,
-        iOS
+        Linux
     }
 }

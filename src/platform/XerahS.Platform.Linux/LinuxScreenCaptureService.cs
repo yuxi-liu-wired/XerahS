@@ -609,8 +609,6 @@ namespace XerahS.Platform.Linux
             {
                 UseModernCapture = options?.UseModernCapture ?? true,
                 LinuxRegionSelectorPreference = options?.LinuxRegionSelectorPreference ?? LinuxInteractiveRegionSelectorPreference.Automatic,
-                MacOSRegionSelectorPreference = options?.MacOSRegionSelectorPreference ?? MacOSInteractiveRegionSelectorPreference.Automatic,
-                MacOSPlayCaptureSound = options?.MacOSPlayCaptureSound ?? true,
                 LinuxForceLegacyCapturePath = options?.LinuxForceLegacyCapturePath ?? false,
                 LinuxDisallowPortalAfterOverlaySelection = false,
                 ShowCursor = options?.ShowCursor ?? true,

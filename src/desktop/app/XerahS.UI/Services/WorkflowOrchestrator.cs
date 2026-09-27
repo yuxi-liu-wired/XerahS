@@ -189,11 +189,6 @@ public sealed class WorkflowOrchestrator : IWorkflowOrchestrator
 
     private async Task<string?> ShowOpenFileDialogAsync()
     {
-        if (OperatingSystem.IsMacOS())
-        {
-            return await MacOSUploadFilePicker.PickFileAsync().ConfigureAwait(false);
-        }
-
         var tcs = new TaskCompletionSource<string?>();
 
         await Dispatcher.UIThread.InvokeAsync(async () =>
@@ -250,7 +245,7 @@ public sealed class WorkflowOrchestrator : IWorkflowOrchestrator
             return;
         }
 
-        mainWindow.ShowInTaskbar = !OperatingSystem.IsMacOS() || !SettingsManager.Settings.SilentRun;
+        mainWindow.ShowInTaskbar = true;
 
         if (!mainWindow.IsVisible)
         {

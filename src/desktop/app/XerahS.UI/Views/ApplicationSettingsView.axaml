@@ -853,44 +853,7 @@
                                         Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" 
                                         CornerRadius="4" Padding="16">
                                     <StackPanel Spacing="16">
-                                        <CheckBox IsChecked="{Binding UseModernCapture}" Content="Use Modern Screen Capture (Direct3D11 on Windows, XDG Portal on Linux). Requires restart." AutomationProperties.Name="Use Modern Capture"/>
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <StackPanel controls:SettingsSearch.IsAvailabilityContainer="True" IsVisible="{Binding IsMacOSPlatform}">
-                            <StackPanel Spacing="8" controls:SettingsSearch.IsPanel="True">
-                                <TextBlock Text="macOS Region Selector" FontWeight="SemiBold"/>
-                                <Border BorderThickness="1"
-                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                        CornerRadius="4" Padding="16">
-                                    <StackPanel Spacing="16">
-                                        <TextBlock Text="Choose one selector for macOS interactive region capture so the native crosshair and XerahS overlay are not shown in the same workflow."
-                                                   TextWrapping="Wrap"/>
-                                        <Grid ColumnDefinitions="120, 16, *">
-                                            <TextBlock Grid.Column="0" Text="Region selector:" VerticalAlignment="Center"/>
-                                            <ComboBox Grid.Column="2"
-                                                      ItemsSource="{Binding MacOSRegionSelectorPreferences}"
-                                                      SelectedItem="{Binding MacOSRegionSelectorPreference}"
-                                                      HorizontalAlignment="Stretch"
-                                                      MinWidth="240"
-                                                      AutomationProperties.Name="macOS Region Selector">
-                                                <ComboBox.ItemTemplate>
-                                                    <DataTemplate x:DataType="x:Object">
-                                                        <TextBlock Text="{Binding ., Converter={StaticResource EnumToDescriptionConverter}}"/>
-                                                    </DataTemplate>
-                                                </ComboBox.ItemTemplate>
-                                            </ComboBox>
-                                        </Grid>
-                                        <TextBlock Text="This is the default for macOS workflows and capture tools. Workflows set to Automatic follow this value."
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                   TextWrapping="Wrap"/>
-                                        <CheckBox IsChecked="{Binding MacOSPlayCaptureSound}"
-                                                  Content="Play native macOS capture sound"
-                                                  AutomationProperties.Name="Play Native macOS Capture Sound"/>
+                                        <CheckBox IsChecked="{Binding UseModernCapture}" Content="Use Modern Screen Capture (XDG Portal). Requires restart." AutomationProperties.Name="Use Modern Capture"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

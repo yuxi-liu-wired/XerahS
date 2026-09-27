@@ -201,8 +201,7 @@ namespace XerahS.UI.ViewModels
 
             IWatchFolderDaemonService daemonService = PlatformServices.WatchFolderDaemon;
             WatchFolderDaemonSupported = daemonService.IsSupported;
-            ShowWatchFolderDaemonScopeSelector = daemonService.IsSupported &&
-                                                 (PlatformServices.PlatformInfo.IsLinux || PlatformServices.PlatformInfo.IsMacOS);
+            ShowWatchFolderDaemonScopeSelector = daemonService.IsSupported && PlatformServices.PlatformInfo.IsLinux;
 
             WatchFolderDaemonScope = NormalizeWatchFolderDaemonScope(settings.WatchFolderDaemonScope);
             WatchFolderDaemonStartAtStartup = settings.WatchFolderDaemonStartAtStartup;
@@ -311,11 +310,6 @@ namespace XerahS.UI.ViewModels
 
         private WatchFolderDaemonScope NormalizeWatchFolderDaemonScope(WatchFolderDaemonScope scope)
         {
-            if (OperatingSystem.IsWindows())
-            {
-                return WatchFolderDaemonScope.System;
-            }
-
             if (!PlatformServices.IsInitialized)
             {
                 return scope;

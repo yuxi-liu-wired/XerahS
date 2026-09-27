@@ -39,15 +39,7 @@ namespace XerahS.Platform.Linux
 
         public string Architecture => RuntimeInformation.OSArchitecture.ToString();
 
-        public bool IsWindows => false;
-
         public bool IsLinux => true;
-
-        public bool IsMacOS => false;
-
-        public bool IsWindows10OrGreater => false;
-
-        public bool IsWindows11OrGreater => false;
 
         public string RuntimeVersion => RuntimeInformation.FrameworkDescription;
 
